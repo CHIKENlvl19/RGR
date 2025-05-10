@@ -6,7 +6,7 @@ using namespace std;
 
 void PasswordCheck() {
     cout << "Для начала работы с приложением введите пароль.\n";
-    int password = 199672;
+    int password = 2303;
     int password_input;
 
     int attempts = 0;
@@ -40,6 +40,6 @@ void Greeting() {
     cout << "• С клавиатуры\n";
     cout << "• Из файла\n";
 
-    
+
 }
 
