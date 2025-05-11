@@ -3,7 +3,7 @@
 #include <cctype>
 #include <string>
 #include <locale>
-#include <numeric>
+#include <limits>
 #include "header.h"
 
 using namespace std;
@@ -33,6 +33,7 @@ void PasswordCheck() {
         if (password == password_input)
         {
             cout << "Пароль верный. Доступ разрешен.\n\n";
+            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // очистка буфера
             break;
         }
         else
@@ -51,26 +52,26 @@ void PasswordCheck() {
 }
 
 void Greeting() {
-    cout << "Добро пожаловать в программу шифрования и дешифровки текста! Введите, пожалуйста, текстом, метод ввода: \n\n";
+    cout << "Добро пожаловать в программу шифрования и дешифровки текста!\nВведите, пожалуйста, текстом, метод ввода: \n\n";
 }
 
 string ChoiceInput() {
     string input;
+    locale loc("ru_RU.UTF-8");
 
-    do {
-        cout << "Доступные методы ввода: \n";
-        cout << "• С клавиатуры\n";
-        cout << "• Из файла\n";
+    cout << "Доступные методы ввода: \n";
+    cout << "• С клавиатуры\n";
+    cout << "• Из файла\n";
+
+    while (true) {
 
         if (!getline(cin, input))
         {
             cin.clear();
-            //cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
             cout << "\nНекорректный ввод. Пожалуйста, повторите попытку.\n";
             continue;
         }
-
-        input = trim(input);
 
         if (input.empty())
         {
@@ -78,7 +79,6 @@ string ChoiceInput() {
             continue;
         }
 
-        locale loc("ru_RU.UTF-8");
         string lower_case_input;
 
         for (char c : input)
@@ -96,6 +96,5 @@ string ChoiceInput() {
         {
             cout << "\nНекорректный ввод. Пожалуйста, выберите метод ввода из предложенных.\n";
         }
-    } while (true);
+    }
 }
-
