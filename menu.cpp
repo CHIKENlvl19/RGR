@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <cctype>
 #include <string>
 #include <locale>
@@ -141,4 +142,17 @@ void PreparedFiles() {
             cout << "Неверный формат ввода. Введите номер заготовленного файла.\n";
         }
     }
+}
+
+void createUserFiles() {
+    string filename;
+    string text;
+
+    cout << "\nВведите имя файла (например, myfile.txt): ";
+    getline(cin, filename);
+
+    // cоздание и открытие файла для записи
+    ofstream outFile(filename);
+
+    
 }

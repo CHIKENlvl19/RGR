@@ -21,6 +21,10 @@ int main() {
         {
             PreparedFiles();
         }
+        else
+        {
+            createUserFiles();
+        }
     }
 
     return 0;
