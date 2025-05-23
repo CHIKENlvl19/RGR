@@ -7,6 +7,7 @@
 #include <limits>
 #include <unicode/unistr.h>
 #include <unicode/locid.h>
+#include <stdexcept>
 #include "header.h"
 
 using namespace std;
@@ -145,14 +146,45 @@ void PreparedFiles() {
 }
 
 void createUserFiles() {
-    string filename;
-    string text;
+    try {
+        string filename;
+        //string text;
 
-    cout << "\nВведите имя файла (например, myfile.txt): ";
-    getline(cin, filename);
+        cout << "\nВведите имя файла (например, myfile.txt): ";
+        getline(cin, filename);
 
-    // cоздание и открытие файла для записи
-    ofstream outFile(filename);
+        // cоздание и открытие файла для записи
+        ofstream outFile(filename);
 
+        cout << "\nВведите текст для записи (для завершения введите пустую строку):\n";
+
+        while (true)
+        {
+            string line;
+            getline(cin, line);
+
+            if (line.empty())
+            {
+                break;
+            }
+
+            outFile << line << endl;
+        }
+
+        outFile.close();
+
+        cout << "\nФайл успешно создан, данные записаны!\n";
+    }
+    catch (const ios_base::failure& e)
+    {
+        cerr << "\nОшибка ввода\\вывода: " << e.what()
+             << "Код ошибки: " << e.code() << endl;
+        throw;
+    }
+    catch (const exception& e)
+    {
+        cerr << "Ошибка: " << e.what() << endl;
+        throw;
+    }
     
 }
