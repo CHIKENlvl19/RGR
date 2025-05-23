@@ -23,7 +23,7 @@ void PasswordCheck() {
         if (password == passwordInput)
         {
             cout << "Пароль верный. Доступ разрешен.\n\n";
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // очистка буфера
+            cin.ignore(1000, '\n');
             break;
         }
         else
@@ -58,7 +58,7 @@ string ChoiceInput() {
         if (!getline(cin, input))
         {
             cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cin.ignore(1000, '\n');
             cout << "\nНекорректный ввод. Пожалуйста, повторите попытку.\n";
             continue;
         }
@@ -75,12 +75,70 @@ string ChoiceInput() {
         string lowerInput;
         unicodeStr.toUTF8String(lowerInput);
 
-        if (lowerInput == "с клавиатуры" || lowerInput == "клавиатура") {
+        if (lowerInput == "с клавиатуры" || lowerInput == "клавиатура") 
+        {
             return "keyboard";
-        } else if (lowerInput == "из файла" || lowerInput == "файл") {
+        } 
+        else if (lowerInput == "из файла" || lowerInput == "файл") 
+        {
             return "file";
-        } else {
+        } 
+        else 
+        {
             cout << "\nНекорректный ввод. Пожалуйста, выберите метод ввода из предложенных.\n";
+        }
+    }
+}
+
+string FileMethods() {
+    string answer;
+
+    while (true)
+    {
+        if(!getline(cin, answer))
+        {
+            cin.clear();
+            cin.ignore(1000, '\n');
+            cout << "\nНекорректный ввод. Пожалуйста, повторите попытку.\n";
+            continue;
+        }
+
+
+        if (answer.empty())
+        {
+            cout << "Ввод не должен быть пустым. Пожалуйста, повторите попытку.\n";
+            continue;
+        }
+
+        return answer;
+    }
+}
+
+void PreparedFiles() {
+    cout << "\nФайл какого размера Вы бы хотели использовать?\n";
+    cout << "1. 1.000 символов - отрывок из романа в стихах \"Евгений Онегин\", Александр Сергеевич Пушкин\n";
+    cout << "2. 10.000 символов - отрывок из книги \"ХАКИНГ Искусство эксплойта Второе издание\", Джон Эриксон\n";
+    cout << "3. 100.000 символов - отрывок из романа-эпопеи \"Война и мир\", Лев Николаевич Толстой\n";
+
+    int choice;
+    while (true)
+    {
+        cin >> choice;
+        if (choice == 1)
+        {
+
+        }
+        else if (choice == 2)
+        {
+
+        }
+        else if (choice == 3)
+        {
+
+        }
+        else
+        {
+            cout << "Неверный формат ввода. Введите номер заготовленного файла.\n";
         }
     }
 }

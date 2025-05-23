@@ -16,6 +16,11 @@ int main() {
     else if (input_method == "file")
     {
         cout << "Вы выбрали ввод из файла.\n";
+        cout << "\nИспользовать готовый файл? (да/нет)\n";
+        if(FileMethods() == "да")
+        {
+            PreparedFiles();
+        }
     }
 
     return 0;
