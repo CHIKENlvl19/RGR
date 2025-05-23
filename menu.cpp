@@ -4,33 +4,23 @@
 #include <string>
 #include <locale>
 #include <limits>
+#include <unicode/unistr.h>
+#include <unicode/locid.h>
 #include "header.h"
 
 using namespace std;
 
-// обрез пробелов в начале и конце строки 
-string trim (const string& input) {
-    size_t first = input.find_first_not_of(' ');
-    if (first == string::npos)
-    {
-        return "";
-    }
-    size_t last = input.find_first_not_of(' ');
-
-    return input.substr(first, (last - first + 1));
-}
-
 void PasswordCheck() {
     cout << "Для начала работы с приложением введите пароль.\n";
     int password = 2303;
-    int password_input;
+    int passwordInput;
 
     int attempts = 0;
     while (attempts < 10)
     {
         cout << "Пароль: ";
-        cin >> password_input;
-        if (password == password_input)
+        cin >> passwordInput;
+        if (password == passwordInput)
         {
             cout << "Пароль верный. Доступ разрешен.\n\n";
             cin.ignore(numeric_limits<streamsize>::max(), '\n'); // очистка буфера
@@ -57,7 +47,7 @@ void Greeting() {
 
 string ChoiceInput() {
     string input;
-    locale loc("ru_RU.UTF-8");
+    locale::global(locale("ru_RU.UTF-8"));
 
     cout << "Доступные методы ввода: \n";
     cout << "• С клавиатуры\n";
@@ -79,21 +69,17 @@ string ChoiceInput() {
             continue;
         }
 
-        string lower_case_input;
+        icu::UnicodeString unicodeStr = icu::UnicodeString::fromUTF8(input);
+        unicodeStr.toLower(icu::Locale("ru_RU")); // Явное указание русской локали
+        
+        string lowerInput;
+        unicodeStr.toUTF8String(lowerInput);
 
-        for (char c : input)
-        {
-            lower_case_input += tolower(c, loc);
-        }
-
-        if (lower_case_input == "с клавиатуры"  || lower_case_input == "клавиатура")
-        {
+        if (lowerInput == "с клавиатуры" || lowerInput == "клавиатура") {
             return "keyboard";
-        } else if (lower_case_input == "из файла" || lower_case_input == "файл")
-        {
+        } else if (lowerInput == "из файла" || lowerInput == "файл") {
             return "file";
-        } else
-        {
+        } else {
             cout << "\nНекорректный ввод. Пожалуйста, выберите метод ввода из предложенных.\n";
         }
     }
