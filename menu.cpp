@@ -84,15 +84,15 @@ string PreparedFiles() {
         cin >> choice;
         if (choice == 1)
         {
-            return "1k_symbols.txt";
+            return "prepared_files/1k_symbols.txt";
         }
         else if (choice == 2)
         {
-            return "10k_symbols.txt";
+            return "prepared_files/10k_symbols.txt";
         }
         else if (choice == 3)
         {
-            return "100k_symbols.txt";
+            return "prepared_files/100k_symbols.txt";
         }
         else
         {

@@ -147,7 +147,7 @@ void crypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciph
     out << "Открытый ключ (p, g, y) = (" << p << ", " << g << ", " << y << ")" << endl;
     out << "Закрытый ключ x = " << x << endl;
 
-    out << "\nШифруемый текст: " << plaintext << endl << endl;
+    out << "\nШифруемый текст:\n" << plaintext << endl << endl;
 
     out << "Зашифрованный текст: ";
 
@@ -169,7 +169,7 @@ void crypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciph
 }
 
 void decrypt(int p, int x, const string& ciphertext, string& decryptedText, ofstream& out) {
-    out << "\nДешифрованный текст: ";
+    out << "\nДешифрованный текст:\n";
 
     stringstream ss(ciphertext);
     int a, b;
