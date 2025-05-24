@@ -4,7 +4,8 @@ using namespace std;
 
 void Greeting();
 void PasswordCheck();
-string ChoiceInput();
 string FileMethods();
-void PreparedFiles();
-void createUserFiles();
+string PreparedFiles();
+string createUserFiles();
+int cipherChoice();
+void crypt(int cipherChoice, string fileName);

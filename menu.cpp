@@ -9,6 +9,7 @@
 #include <unicode/locid.h>
 #include <stdexcept>
 #include "header.h"
+#include "ElGamal/ElGamal_functions.h"
 
 using namespace std;
 
@@ -44,52 +45,7 @@ void PasswordCheck() {
 }
 
 void Greeting() {
-    cout << "Добро пожаловать в программу шифрования и дешифровки текста!\nВведите, пожалуйста, текстом, метод ввода: \n\n";
-}
-
-string ChoiceInput() {
-    string input;
-    locale::global(locale("ru_RU.UTF-8"));
-
-    cout << "Доступные методы ввода: \n";
-    cout << "• С клавиатуры\n";
-    cout << "• Из файла\n";
-
-    while (true) {
-
-        if (!getline(cin, input))
-        {
-            cin.clear();
-            cin.ignore(1000, '\n');
-            cout << "\nНекорректный ввод. Пожалуйста, повторите попытку.\n";
-            continue;
-        }
-
-        if (input.empty())
-        {
-            cout << "Пустой ввод не допускатеся. Пожалуйста, выберите метод ввода.\n";
-            continue;
-        }
-
-        icu::UnicodeString unicodeStr = icu::UnicodeString::fromUTF8(input);
-        unicodeStr.toLower(icu::Locale("ru_RU")); // Явное указание русской локали
-        
-        string lowerInput;
-        unicodeStr.toUTF8String(lowerInput);
-
-        if (lowerInput == "с клавиатуры" || lowerInput == "клавиатура") 
-        {
-            return "keyboard";
-        } 
-        else if (lowerInput == "из файла" || lowerInput == "файл") 
-        {
-            return "file";
-        } 
-        else 
-        {
-            cout << "\nНекорректный ввод. Пожалуйста, выберите метод ввода из предложенных.\n";
-        }
-    }
+    cout << "Добро пожаловать в программу шифрования и дешифровки текста Cryptographer!\n\n";
 }
 
 string FileMethods() {
@@ -116,7 +72,7 @@ string FileMethods() {
     }
 }
 
-void PreparedFiles() {
+string PreparedFiles() {
     cout << "\nФайл какого размера Вы бы хотели использовать?\n";
     cout << "1. 1.000 символов - отрывок из романа в стихах \"Евгений Онегин\", Александр Сергеевич Пушкин\n";
     cout << "2. 10.000 символов - отрывок из книги \"ХАКИНГ Искусство эксплойта Второе издание\", Джон Эриксон\n";
@@ -128,15 +84,15 @@ void PreparedFiles() {
         cin >> choice;
         if (choice == 1)
         {
-
+            return "1k_symbols.txt";
         }
         else if (choice == 2)
         {
-
+            return "10k_symbols.txt";
         }
         else if (choice == 3)
         {
-
+            return "100k_symbols.txt";
         }
         else
         {
@@ -145,7 +101,7 @@ void PreparedFiles() {
     }
 }
 
-void createUserFiles() {
+string createUserFiles() {
     try {
         string filename;
         //string text;
@@ -174,6 +130,8 @@ void createUserFiles() {
         outFile.close();
 
         cout << "\nФайл успешно создан, данные записаны!\n";
+        
+        return filename;
     }
     catch (const ios_base::failure& e)
     {
@@ -187,4 +145,49 @@ void createUserFiles() {
         throw;
     }
     
+}
+
+int cipherChoice() {
+    cout << "\nКакой метод шифрования вы хотите использовать?\n";
+    cout << "1. Шифр Вижинера.\n";
+    cout << "2. Шифр Вернама.\n";
+    cout << "3. Шифр Эль-Гамаля.\n";
+    
+    int choice;
+    while (true)
+    {
+        cin >> choice;
+        if (choice == 1)
+        {
+            return 1;
+        }
+        else if (choice == 2)
+        {
+            return 2;
+        }
+        else if (choice == 3)
+        {
+            return 3;
+        }
+        else
+        {
+            cout << "Неверный формат ввода. Введите номер шифра.\n";
+        }
+    }
+}
+
+void crypt(int cipherChoice, string fileName) {
+    if (cipherChoice == 1)
+    {
+        
+    }
+    else if (cipherChoice == 2)
+    {
+
+    }
+    else if (cipherChoice == 3)
+    {
+        ElGamal(fileName);
+    }
+
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "header.h"
+#include "ElGamal/ElGamal_functions.h"
 
 using namespace std;
 
@@ -8,24 +9,19 @@ int main() {
     PasswordCheck();
     Greeting();
 
-    string input_method = ChoiceInput();
-    if (input_method == "keyboard")
+    string fileName;
+
+    cout << "\nИспользовать готовый файл? (да/нет)\nПри выборе ответа \"нет\" будет создан новый файл.\n";
+    if(FileMethods() == "да")
     {
-        cout << "Вы выбрали ввод с клавиатуры.\n";
+        fileName = PreparedFiles();
     }
-    else if (input_method == "file")
+    else
     {
-        cout << "Вы выбрали ввод из файла.\n";
-        cout << "\nИспользовать готовый файл? (да/нет)\n";
-        if(FileMethods() == "да")
-        {
-            PreparedFiles();
-        }
-        else
-        {
-            createUserFiles();
-        }
+        fileName = createUserFiles();
     }
+    
+    crypt(cipherChoice(), fileName);
 
     return 0;
 }
