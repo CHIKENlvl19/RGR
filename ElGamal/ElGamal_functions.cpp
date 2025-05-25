@@ -143,7 +143,7 @@ tuple<int, int, int, int> KeysGenerator(){
     return make_tuple(p, g, x, y);
 }
 
-void crypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciphertext, ofstream& out) {
+void ElGamalCrypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciphertext, ofstream& out, bool isPrinting) {
     out << "Открытый ключ (p, g, y) = (" << p << ", " << g << ", " << y << ")" << endl;
     out << "Закрытый ключ x = " << x << endl;
 
@@ -168,8 +168,8 @@ void crypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciph
     out << endl;
 }
 
-void decrypt(int p, int x, const string& ciphertext, string& decryptedText, ofstream& out) {
-    out << "\nДешифрованный текст:\n";
+void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedText, ofstream& out, bool isPrinting) {
+    
 
     stringstream ss(ciphertext);
     int a, b;
@@ -179,7 +179,11 @@ void decrypt(int p, int x, const string& ciphertext, string& decryptedText, ofst
         decryptedText += char(deM);
     }
 
-    out << decryptedText << endl;
+    if (isPrinting)
+    {
+        out << "\nДешифрованный текст:\n";
+        out << decryptedText << endl;
+    }
 }
 
 void ElGamal(string filename) {
@@ -211,11 +215,13 @@ void ElGamal(string filename) {
     
     inFile.close();
 
+    bool isPritingFile = true;
+
     string ciphertext;
-    crypt(p, g, x, y, plaintext, ciphertext, outFile);
+    ElGamalCrypt(p, g, x, y, plaintext, ciphertext, outFile, isPritingFile);
 
     string decryptedText;
-    decrypt(p, x, ciphertext, decryptedText, outFile);
+    ElGamalDecrypt(p, x, ciphertext, decryptedText, outFile, isPritingFile);
 
     outFile.close();
 

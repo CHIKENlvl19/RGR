@@ -5,11 +5,11 @@
 #include <string>
 #include <locale>
 #include <limits>
-#include <unicode/unistr.h>
-#include <unicode/locid.h>
 #include <stdexcept>
 #include "header.h"
 #include "ElGamal/ElGamal_functions.h"
+#include "Vernam/Vernam_functions.h"
+#include "Vigener/Viginer_functions.h"
 
 using namespace std;
 
@@ -179,15 +179,38 @@ int cipherChoice() {
 void crypt(int cipherChoice, string fileName) {
     if (cipherChoice == 1)
     {
-        
+        Viginer(fileName);
     }
     else if (cipherChoice == 2)
     {
-
+        Vernam(fileName);
     }
     else if (cipherChoice == 3)
     {
         ElGamal(fileName);
     }
 
+}
+
+bool filePrint() {
+    cout << "Желаете, чтобы программа вывела расшифрованный текст? (да / нет): ";
+    
+    while (true)
+    {
+        string choice;
+        cin >> choice;
+        
+        if (choice == "да" || choice == "Да" || choice == "ДА")
+        {
+            return true;
+        }
+        else if (choice  == "нет" || choice == "Нет" || choice == "НЕТ")
+        {
+            return false;
+        }
+        else
+        {
+            cout << "Некорректный ввод. Попробуйте снова.\n";
+        }
+    }
 }

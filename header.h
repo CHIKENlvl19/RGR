@@ -9,3 +9,4 @@ string PreparedFiles();
 string createUserFiles();
 int cipherChoice();
 void crypt(int cipherChoice, string fileName);
+bool filePrint();
