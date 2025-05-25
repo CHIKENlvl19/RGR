@@ -22,8 +22,10 @@ int main() {
     {
         fileName = createUserFiles();
     }
+
+    bool isPrinting = filePrint();
     
-    crypt(cipherChoice(), fileName);
+    crypt(cipherChoice(), fileName, isPrinting);
     
 
     return 0;

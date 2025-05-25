@@ -186,7 +186,7 @@ void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedTex
     }
 }
 
-void ElGamal(string filename) {
+void ElGamal(string filename, bool isPrinting) {
     srand(time(NULL));
 
     auto generated_keys = KeysGenerator();
@@ -215,13 +215,13 @@ void ElGamal(string filename) {
     
     inFile.close();
 
-    bool isPritingFile = true;
+    //bool isPritingFile = true;
 
     string ciphertext;
-    ElGamalCrypt(p, g, x, y, plaintext, ciphertext, outFile, isPritingFile);
+    ElGamalCrypt(p, g, x, y, plaintext, ciphertext, outFile, isPrinting);
 
     string decryptedText;
-    ElGamalDecrypt(p, x, ciphertext, decryptedText, outFile, isPritingFile);
+    ElGamalDecrypt(p, x, ciphertext, decryptedText, outFile, isPrinting);
 
     outFile.close();
 

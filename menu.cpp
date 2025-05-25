@@ -176,7 +176,7 @@ int cipherChoice() {
     }
 }
 
-void crypt(int cipherChoice, string fileName) {
+void crypt(int cipherChoice, string fileName, bool isPrinting) {
     if (cipherChoice == 1)
     {
         Viginer(fileName);
@@ -187,7 +187,7 @@ void crypt(int cipherChoice, string fileName) {
     }
     else if (cipherChoice == 3)
     {
-        ElGamal(fileName);
+        ElGamal(fileName, isPrinting);
     }
 
 }
