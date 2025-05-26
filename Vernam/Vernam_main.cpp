@@ -18,8 +18,15 @@ string randomKeyGenerator(size_t length) {
     return key;
 }
 
-void vernamEncrypt (const string& plaintext, const string& key, ofstream& out) {
-    out << "Случайно сгенерированный ключ: " << key << endl;
+string vernamEncrypt (const string& plaintext, const string& key, ofstream& out) {
+    out << "Случайно сгенерированный ключ: ";
+    
+    for (char c : key)
+    {
+        out << hex << (int)(unsigned char)c;
+    }
+    out << endl;
+
     out << "Шифруемый текст: " << plaintext << endl;
 
     string ciphertext;
@@ -31,7 +38,13 @@ void vernamEncrypt (const string& plaintext, const string& key, ofstream& out) {
     }
 
     out << "Зашифрованный текст: " << endl;
-    out << ciphertext;
+    for (char c : ciphertext)
+    {
+        out << hex << (int)(unsigned char)c;
+    }
+    out << endl;
+
+    return ciphertext;
 }
 
 void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out) {
@@ -48,30 +61,40 @@ void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out) 
 }
 
 void Vernam(string fileName) {
+    try {
+        ifstream inFile(fileName);
+        ofstream outFile("output.txt");
 
-    ifstream inFile(fileName);
-    ofstream outFile("output.txt");
+        string plaintext;
+        inFile.seekg(0, ios::end);
 
-    string plaintext;
-    inFile.seekg(0, ios::end);
+        size_t size = inFile.tellg();
+        inFile.seekg(0, ios::beg);
 
-    size_t size = inFile.tellg();
-    inFile.seekg(0, ios::beg);
+        if (size > 0)
+        {
+            plaintext.assign(istreambuf_iterator<char>(inFile), istreambuf_iterator<char>());
+        } else {
+            cerr << "Входной файл пуст: " << fileName;
+        }
+        inFile.close();
 
-    if (size > 0)
-    {
-        plaintext.assign(istreambuf_iterator<char>(inFile), istreambuf_iterator<char>());
-    } else {
-        cerr << "Входной файл пуст: " << fileName;
+        if (plaintext.empty()) {
+            throw runtime_error("Входной файл пуст");
+        }
+
+        const string key = randomKeyGenerator(plaintext.length());
+        string cipherText = vernamEncrypt(plaintext, key, outFile);
+
+        string decryptedText;
+        vernamDecrypt(cipherText, key, outFile);
+
+        outFile.close();
+
     }
-    inFile.close();
-
-    const string key = randomKeyGenerator(plaintext.length());
-    string cipherText;
-    vernamEncrypt(plaintext, key, outFile);
-
-    string decryptedText;
-    vernamDecrypt(cipherText, key, outFile);
-
-    outFile.close();
+    catch (const exception& e)
+    {
+        cerr << "Ошибка: " << e.what() << endl;
+    }
+    
 }
