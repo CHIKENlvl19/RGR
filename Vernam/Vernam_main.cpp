@@ -18,14 +18,18 @@ string randomKeyGenerator(size_t length) {
     return key;
 }
 
-string vernamEncrypt (const string& plaintext, const string& key, ofstream& out) {
-    out << "Случайно сгенерированный ключ: ";
+string vernamEncrypt (const string& plaintext, const string& key, ofstream& out, bool isShowingKeys) {
     
-    for (char c : key)
+    if (isShowingKeys)
     {
-        out << hex << (int)(unsigned char)c;
+        out << "Случайно сгенерированный ключ: ";
+    
+        for (char c : key)
+        {
+            out << hex << (int)(unsigned char)c;
+        }
+        out << endl;
     }
-    out << endl;
 
     out << "Шифруемый текст: " << plaintext << endl;
 
@@ -60,7 +64,7 @@ void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out) 
     out << plaintext;
 }
 
-void Vernam(string fileName) {
+void Vernam(string fileName, bool isShowingKeys) {
     try {
         ifstream inFile(fileName);
         ofstream outFile("output.txt");
@@ -84,7 +88,7 @@ void Vernam(string fileName) {
         }
 
         const string key = randomKeyGenerator(plaintext.length());
-        string cipherText = vernamEncrypt(plaintext, key, outFile);
+        string cipherText = vernamEncrypt(plaintext, key, outFile, isShowingKeys);
 
         string decryptedText;
         vernamDecrypt(cipherText, key, outFile);

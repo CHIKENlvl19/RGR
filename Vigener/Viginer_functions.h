@@ -4,4 +4,4 @@
 
 using namespace std;
 
-void Viginer(string fileName);
+void Viginer (string fileName, bool isShowingKeys);

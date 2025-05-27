@@ -23,10 +23,9 @@ int main() {
         fileName = createUserFiles();
     }
 
-    bool isPrinting = filePrint();
-    
-    crypt(cipherChoice(), fileName, isPrinting);
-    
+    bool isShowingKeys = isPrintingKeys();
+    crypt(cipherChoice(), fileName, isShowingKeys);
+
 
     return 0;
 }

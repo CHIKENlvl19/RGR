@@ -81,26 +81,24 @@ string PreparedFiles() {
     cout << "1. 1.000 символов - отрывок из романа в стихах \"Евгений Онегин\", Александр Сергеевич Пушкин\n";
     cout << "2. 10.000 символов - отрывок из книги \"ХАКИНГ Искусство эксплойта Второе издание\", Джон Эриксон\n";
     cout << "3. 100.000 символов - отрывок из романа-эпопеи \"Война и мир\", Лев Николаевич Толстой\n";
+    cout << "4. 180 символов - набор специальных символов.\n";
 
     int choice;
     while (true)
     {
         cin >> choice;
-        if (choice == 1)
+        switch (choice)
         {
-            return "prepared_files/1k_symbols.txt";
-        }
-        else if (choice == 2)
-        {
-            return "prepared_files/10k_symbols.txt";
-        }
-        else if (choice == 3)
-        {
-            return "prepared_files/100k_symbols.txt";
-        }
-        else
-        {
-            cout << "Неверный формат ввода. Введите номер заготовленного файла.\n";
+            case 1:
+                return "prepared_files/1k_symbols.txt";
+            case 2:
+                return "prepared_files/10k_symbols.txt";
+            case 3:
+                return "prepared_files/100k_symbols.txt";
+            case 4:
+                return "prepared_files/special_symbols.txt";
+            default:
+                cout << "Неверный формат ввода. Введите номер заготовленного файла.\n";
         }
     }
 }
@@ -180,41 +178,48 @@ int cipherChoice() {
     }
 }
 
-void crypt(int cipherChoice, string fileName, bool isPrinting) {
+bool isPrintingKeys() {
+    cout << "Желаете видеть ключи, используемые для шифрования / дешифровки?\n";
+    try {
+        
+        while (true)
+        {
+            string choice;
+            cin >> choice;
+
+            if (choice == "да" || choice == "Да" || choice == "ДА")
+            {
+                return true;
+            }
+            else if (choice == "нет" || choice == "Нет" || choice == "НЕТ")
+            {
+                return false;
+            }
+            else
+            {
+                cerr << "Некорректный ввод, попробуйте еще раз.\n";
+            }
+        }
+
+    }
+    catch (const exception& e)
+    {
+        cerr << "Ошибка: " << e.what() << endl;
+    }
+}
+
+void crypt(int cipherChoice, string fileName, bool showKeys) {
     if (cipherChoice == 1)
     {
-        Viginer(fileName);
+        Viginer(fileName, showKeys);
     }
     else if (cipherChoice == 2)
     {
-        Vernam(fileName);
+        Vernam(fileName, showKeys);
     }
     else if (cipherChoice == 3)
     {
-        ElGamal(fileName, isPrinting);
+        ElGamal(fileName, showKeys);
     }
 
-}
-
-bool filePrint() {
-    cout << "Желаете, чтобы программа вывела расшифрованный текст? (да / нет): ";
-    
-    while (true)
-    {
-        string choice;
-        cin >> choice;
-        
-        if (choice == "да" || choice == "Да" || choice == "ДА")
-        {
-            return true;
-        }
-        else if (choice  == "нет" || choice == "Нет" || choice == "НЕТ")
-        {
-            return false;
-        }
-        else
-        {
-            cout << "Некорректный ввод. Попробуйте снова.\n";
-        }
-    }
 }

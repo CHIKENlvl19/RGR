@@ -8,5 +8,5 @@ string FileMethods();
 string PreparedFiles();
 string createUserFiles();
 int cipherChoice();
-void crypt(int cipherChoice, string fileName, bool isPrinting);
-bool filePrint();
+void crypt(int cipherChoice, string fileName, bool showKeys);
+bool isPrintingKeys();

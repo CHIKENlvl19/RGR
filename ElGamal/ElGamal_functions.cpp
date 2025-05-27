@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <fstream>
+#include <tuple>
 #include "ElGamal_functions.h"
 
 using namespace std;
@@ -143,9 +144,13 @@ tuple<int, int, int, int> KeysGenerator(){
     return make_tuple(p, g, x, y);
 }
 
-void ElGamalCrypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciphertext, ofstream& out, bool isPrinting) {
-    out << "Открытый ключ (p, g, y) = (" << p << ", " << g << ", " << y << ")" << endl;
-    out << "Закрытый ключ x = " << x << endl;
+void ElGamalCrypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciphertext, ofstream& out, bool isShowingKeys) {
+    
+    if (isShowingKeys)
+    {
+        out << "Открытый ключ (p, g, y) = (" << p << ", " << g << ", " << y << ")" << endl;
+        out << "Закрытый ключ x = " << x << endl;
+    }
 
     out << "\nШифруемый текст:\n" << plaintext << endl << endl;
 
@@ -168,7 +173,7 @@ void ElGamalCrypt(int& p, int& g, int& x, int& y, const string& plaintext, strin
     out << endl;
 }
 
-void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedText, ofstream& out, bool isPrinting) {
+void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedText, ofstream& out) {
     
 
     stringstream ss(ciphertext);
@@ -179,11 +184,10 @@ void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedTex
         decryptedText += char(deM);
     }
 
-    if (isPrinting)
-    {
-        out << "\nДешифрованный текст:\n";
-        out << decryptedText << endl;
-    }
+    
+    out << "\nДешифрованный текст:\n";
+    out << decryptedText << endl;
+    
 }
 
 string ElGamalPasswordDecrypt(int p, int x, const string& ciphertext) {
@@ -200,7 +204,7 @@ string ElGamalPasswordDecrypt(int p, int x, const string& ciphertext) {
     return decryptedText;
 }
 
-void ElGamal(string filename, bool isPrinting) {
+void ElGamal(string filename, bool isShowingKeys) {
 
     try {
         srand(time(NULL));
@@ -231,17 +235,14 @@ void ElGamal(string filename, bool isPrinting) {
     
         inFile.close();
 
-        //bool isPritingFile = true;
-
         string ciphertext;
-        ElGamalCrypt(p, g, x, y, plaintext, ciphertext, outFile, isPrinting);
+        ElGamalCrypt(p, g, x, y, plaintext, ciphertext, outFile, isShowingKeys);
 
         string decryptedText;
-        ElGamalDecrypt(p, x, ciphertext, decryptedText, outFile, isPrinting);
+        ElGamalDecrypt(p, x, ciphertext, decryptedText, outFile);
 
         outFile.close();
 
-        //return 0;
     }
     catch (const exception& e) 
     {
