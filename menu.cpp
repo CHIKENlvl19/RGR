@@ -15,15 +15,19 @@ using namespace std;
 
 void PasswordCheck() {
     cout << "Для начала работы с приложением введите пароль.\n";
-    int password = 2303;
-    int passwordInput;
+    
+    ifstream passwordFile("password.txt");
+    string password; 
+    getline(passwordFile, password);
 
     int attempts = 0;
     while (attempts < 10)
     {
         cout << "Пароль: ";
+        string passwordInput;
         cin >> passwordInput;
-        if (password == passwordInput)
+        string decryptedPassword = ElGamalPasswordDecrypt(4273, 1404, password);
+        if (passwordInput == decryptedPassword)
         {
             cout << "Пароль верный. Доступ разрешен.\n\n";
             cin.ignore(1000, '\n');

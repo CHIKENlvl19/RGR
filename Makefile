@@ -9,10 +9,9 @@ TARGET = cryptographer
 
 all: $(TARGET)
 
-LDLIBS = -licuuc -licui18n
 
 $(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ) $(LDLIBS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ)
 
 %.o: %.cpp header.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@

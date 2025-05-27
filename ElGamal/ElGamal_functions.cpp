@@ -186,6 +186,20 @@ void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedTex
     }
 }
 
+string ElGamalPasswordDecrypt(int p, int x, const string& ciphertext) {
+    
+    stringstream ss(ciphertext);
+    string decryptedText;
+    int a, b;
+    while (ss >> a >> b) 
+    {
+        int deM = MulMod(b, aXmodP(a, p - 1 - x, p), p);
+        decryptedText += char(deM);
+    }
+
+    return decryptedText;
+}
+
 void ElGamal(string filename, bool isPrinting) {
 
     try {
