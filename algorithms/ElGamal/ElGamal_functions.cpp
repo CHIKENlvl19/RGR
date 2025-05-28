@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
@@ -7,7 +8,7 @@
 #include <vector>
 #include <fstream>
 #include <tuple>
-#include "ElGamal_functions.h"
+#include "../include/ElGamal/ElGamal_functions.h"
 
 using namespace std;
 
@@ -204,7 +205,17 @@ string ElGamalPasswordDecrypt(int p, int x, const string& ciphertext) {
     return decryptedText;
 }
 
-void ElGamal(string filename, bool isShowingKeys) {
+extern "C" char* ElGamal_PasswordDecrypt(int p, int x, const char* ciphertext) {
+    
+    string decrypted = ElGamalPasswordDecrypt(p, x, ciphertext);
+    char* result = new char[decrypted.size() + 1];
+
+    strcpy(result, decrypted.c_str());
+    
+    return result;
+}
+
+extern "C" void ElGamal_run(const char* filename, int isShowingKeys) {
 
     try {
         srand(time(NULL));

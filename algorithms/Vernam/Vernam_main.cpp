@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <random>
+#include "../include/Vernam/Vernam_functions.h"
 
 using namespace std;
 
@@ -64,7 +65,7 @@ void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out) 
     out << plaintext;
 }
 
-void Vernam(string fileName, bool isShowingKeys) {
+extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
     try {
         ifstream inFile(fileName);
         ofstream outFile("output.txt");

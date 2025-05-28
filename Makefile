@@ -1,20 +1,28 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17
+CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic -Iinclude -fPIC
+LDFLAGS = -ldl
 
-SRC = $(shell find . -name '*.cpp')
+LIB_ELGAMAL = libelgamal.so
+LIB_VERNAM = libvernam.so
+LIB_VIGINER = libviginer.so
 
-OBJ = $(patsubst ./%,%,$(SRC:.cpp=.o))
+MAIN = cryptographer
 
-TARGET = cryptographer
+.PHONY: all clean
 
-all: $(TARGET)
+all: $(MAIN) $(LIB_ELGAMAL) $(LIB_VERNAM) $(LIB_VIGINER)
 
+$(MAIN): src/main.cpp src/menu.cpp
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(TARGET): $(OBJ)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJ)
+$(LIB_ELGAMAL): algorithms/ElGamal/ElGamal_functions.cpp
+	$(CXX) -shared $(CXXFLAGS) -o $@ $^ -lcrypto
 
-%.o: %.cpp header.h
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+$(LIB_VERNAM): algorithms/Vernam/Vernam_main.cpp
+	$(CXX) -shared $(CXXFLAGS) -o $@ $^
+
+$(LIB_VIGINER): algorithms/Viginer/Viginer_main.cpp
+	$(CXX) -shared $(CXXFLAGS) -o $@ $^
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(MAIN) *.so

@@ -1,9 +1,6 @@
 #include <iostream>
 #include <string>
 #include "header.h"
-#include "ElGamal/ElGamal_functions.h"
-#include "Vernam/Vernam_functions.h"
-#include "Vigener/Viginer_functions.h"
 
 using namespace std;
 
@@ -25,7 +22,6 @@ int main() {
 
     bool isShowingKeys = isPrintingKeys();
     crypt(cipherChoice(), fileName, isShowingKeys);
-
 
     return 0;
 }

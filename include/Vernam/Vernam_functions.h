@@ -8,4 +8,4 @@ using namespace std;
 string randomKeyGenerator(size_t length);
 string vernamEncrypt (const string& plaintext, const string& key, ofstream& out, bool isShowingKeys);
 void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out);
-void Vernam(string fileName, bool isShowingKeys);
+extern "C" void Vernam_run(const char* fileName, int isShowingKeys);

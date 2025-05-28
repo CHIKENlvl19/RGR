@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <random>
-#include "Viginer_functions.h"
+#include "../include/Viginer/Viginer_functions.h"
 
 using namespace std;
 
@@ -61,7 +61,7 @@ void ViginerDecrypt(const string& cipherText, const string& key, ofstream& out) 
     out << plainText;
 }
 
-void Viginer (string fileName, bool isShowingKeys) {
+extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
 
     try {
         ifstream inFile(fileName);

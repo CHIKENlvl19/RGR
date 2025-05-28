@@ -6,10 +6,9 @@
 #include <locale>
 #include <limits>
 #include <stdexcept>
+#include <dlfcn.h>
 #include "header.h"
-#include "ElGamal/ElGamal_functions.h"
-#include "Vernam/Vernam_functions.h"
-#include "Vigener/Viginer_functions.h"
+#include "crypto_interface.h"
 
 using namespace std;
 
@@ -20,14 +19,34 @@ void PasswordCheck() {
     string password; 
     getline(passwordFile, password);
 
+    void* elgamalLib = dlopen("./libelgamal.so", RTLD_LAZY);
+    if (!elgamalLib) {
+        cerr << "Ошибка загрузки библиотеки ElGamal: " << dlerror() << endl;
+        exit(1);
+    }
+    
+    typedef char* (*PasswordDecryptFunc)(int p, int x, const char* ciphertext);
+    PasswordDecryptFunc decryptFunc = (PasswordDecryptFunc)dlsym(elgamalLib, "ElGamal_PasswordDecrypt");
+    
+    if (!decryptFunc) {
+        cerr << "Ошибка загрузки функции расшифровки: " << dlerror() << endl;
+        dlclose(elgamalLib);
+        exit(1);
+    }
+    
     int attempts = 0;
     while (attempts < 10)
     {
         cout << "Пароль: ";
         string passwordInput;
-        cin >> passwordInput;
-        string decryptedPassword = ElGamalPasswordDecrypt(4273, 1404, password);
-        if (passwordInput == decryptedPassword)
+        getline(cin, passwordInput);
+        
+        char* decryptedPassword = decryptFunc(4273, 1404, password.c_str());
+        bool passwordMatch = (passwordInput == decryptedPassword);
+        
+        delete[] decryptedPassword;
+        
+        if (passwordMatch)
         {
             cout << "Пароль верный. Доступ разрешен.\n\n";
             cin.ignore(1000, '\n');
@@ -45,7 +64,8 @@ void PasswordCheck() {
             exit(0);
         }
     }
-
+    
+    dlclose(elgamalLib);
 }
 
 void Greeting() {
@@ -64,7 +84,6 @@ string FileMethods() {
             cout << "\nНекорректный ввод. Пожалуйста, повторите попытку.\n";
             continue;
         }
-
 
         if (answer.empty())
         {
@@ -106,12 +125,10 @@ string PreparedFiles() {
 string createUserFiles() {
     try {
         string filename;
-        //string text;
 
         cout << "\nВведите имя файла (например, myfile.txt): ";
         getline(cin, filename);
 
-        // cоздание и открытие файла для записи
         ofstream outFile(filename);
 
         cout << "\nВведите текст для записи (для завершения введите пустую строку):\n";
@@ -146,7 +163,6 @@ string createUserFiles() {
         cerr << "Ошибка: " << e.what() << endl;
         throw;
     }
-    
 }
 
 int cipherChoice() {
@@ -159,21 +175,13 @@ int cipherChoice() {
     while (true)
     {
         cin >> choice;
-        if (choice == 1)
+        if (choice == 1 || choice == 2 || choice == 3)
         {
-            return 1;
-        }
-        else if (choice == 2)
-        {
-            return 2;
-        }
-        else if (choice == 3)
-        {
-            return 3;
+            return choice;
         }
         else
         {
-            cout << "Неверный формат ввода. Введите номер шифра.\n";
+            cout << "Неверный формат ввода. Введите номер шифра (1-3).\n";
         }
     }
 }
@@ -181,7 +189,6 @@ int cipherChoice() {
 bool isPrintingKeys() {
     cout << "Желаете видеть ключи, используемые для шифрования / дешифровки?\n";
     try {
-        
         while (true)
         {
             string choice;
@@ -200,26 +207,54 @@ bool isPrintingKeys() {
                 cerr << "Некорректный ввод, попробуйте еще раз.\n";
             }
         }
-
     }
     catch (const exception& e)
     {
         cerr << "Ошибка: " << e.what() << endl;
+        return false;
     }
 }
 
 void crypt(int cipherChoice, string fileName, bool showKeys) {
-    if (cipherChoice == 1)
-    {
-        Viginer(fileName, showKeys);
+    void* libraryHandle = nullptr;
+    const char* libraryName = nullptr;
+    const char* algorithmFuncName = nullptr;
+    
+    switch(cipherChoice) {
+        case 1:
+            libraryName = "./libviginer.so";
+            algorithmFuncName = "Viginer_run";
+            break;
+        case 2:
+            libraryName = "./libvernam.so";
+            algorithmFuncName = "Vernam_run";
+            break;
+        case 3:
+            libraryName = "./libelgamal.so";
+            algorithmFuncName = "ElGamal_run";
+            break;
+        default:
+            cerr << "Неверный выбор алгоритма\n";
+            return;
     }
-    else if (cipherChoice == 2)
-    {
-        Vernam(fileName, showKeys);
+    
+    libraryHandle = dlopen(libraryName, RTLD_LAZY);
+    if (!libraryHandle) {
+        cerr << "Ошибка загрузки библиотеки " << libraryName << ": " << dlerror() << endl;
+        return;
     }
-    else if (cipherChoice == 3)
-    {
-        ElGamal(fileName, showKeys);
+    
+    typedef void (*AlgorithmFunc)(const char* fileName, int isShowingKeys);
+    AlgorithmFunc algorithmFunc = (AlgorithmFunc)dlsym(libraryHandle, algorithmFuncName);
+    
+    const char* dlsym_error = dlerror();
+    if (dlsym_error) {
+        cerr << "Ошибка загрузки функции " << algorithmFuncName << ": " << dlsym_error << endl;
+        dlclose(libraryHandle);
+        return;
     }
-
+    
+    algorithmFunc(fileName.c_str(), showKeys ? 1 : 0);
+    
+    dlclose(libraryHandle);
 }
