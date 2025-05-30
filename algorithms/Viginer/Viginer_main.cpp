@@ -27,7 +27,10 @@ string randomKeyGenerator(string& key, const size_t& keyLength, bool isShowingKe
     return key;
 }
 
-void ViginerEncrypt(const string& plaintext, const string& key, ofstream& out) {
+string ViginerEncrypt(const string& plaintext, const string& key, ofstream& out) {
+
+    out << "Шифруемый текст: " << plaintext << endl;
+
     string cipherText;
     size_t keyLength = key.length();
 
@@ -40,8 +43,14 @@ void ViginerEncrypt(const string& plaintext, const string& key, ofstream& out) {
         cipherText += cipherChar;
     }
 
-    out << "Зашифрованный текст: \n";
-    out << cipherText;
+    out << "Зашифрованный текст: " << endl;
+    for (char c : cipherText)
+    {
+        out << hex << (int)(unsigned char)c;
+    }
+    out << endl;
+
+    return cipherText;
 }
 
 void ViginerDecrypt(const string& cipherText, const string& key, ofstream& out) {
@@ -53,7 +62,7 @@ void ViginerDecrypt(const string& cipherText, const string& key, ofstream& out) 
         char cipherChar = cipherText[i];
         char keyChar = key[i % keyLength];
 
-        char decryptedChar = static_cast<char>( static_cast<unsigned char>(cipherChar) + static_cast<unsigned char>(keyChar) % 256 );
+        char decryptedChar = static_cast<char>( static_cast<unsigned char>(cipherChar) - static_cast<unsigned char>(keyChar) % 256 );
         plainText += decryptedChar;
     }
 
@@ -100,6 +109,7 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
             {
                 cout << "Введите ключ: ";
                 cin >> key;
+                break;
             }
             else
             {
@@ -107,8 +117,7 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
             }
         }
 
-        string chiperText;
-        ViginerEncrypt(plaintext, key, outFile);
+        string chiperText = ViginerEncrypt(plaintext, key, outFile);
 
         string decryptedText;
         ViginerDecrypt(chiperText, key, outFile);
@@ -119,6 +128,4 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
     {
         cerr << "Ошибка: " << e.what() << endl;
     }
-
-
 }

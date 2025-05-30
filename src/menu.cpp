@@ -48,7 +48,7 @@ void PasswordCheck() {
         
         if (passwordMatch)
         {
-            cout << "Пароль верный. Доступ разрешен.\n\n";
+            cout << "Пароль верный. Доступ разрешен. Нажмите Enter для продолжения.\n\n";
             cin.ignore(1000, '\n');
             break;
         }
@@ -70,6 +70,10 @@ void PasswordCheck() {
 
 void Greeting() {
     cout << "Добро пожаловать в программу шифрования и дешифровки текста Cryptographer!\n\n";
+}
+
+void filesQuestion() {
+    cout << "\nИспользовать готовый файл? (да/нет)\nПри выборе ответа \"нет\" будет создан новый файл.\n";
 }
 
 string FileMethods() {
@@ -257,4 +261,43 @@ void crypt(int cipherChoice, string fileName, bool showKeys) {
     algorithmFunc(fileName.c_str(), showKeys ? 1 : 0);
     
     dlclose(libraryHandle);
+}
+
+void resultsOutput() {
+
+    cout << "\nЖелаете вывести результат работы программы в консоль? (да/нет): ";
+
+    while (true)
+    {
+        string choice;
+        cin >> choice;
+
+        if (choice == "да" || choice == "Да" || choice == "ДА")
+        {
+            ifstream outputFile("output.txt");
+
+            if (!outputFile)
+            {
+                cerr << "\nОшибка! Не удалость октрыть файл." << endl;
+            }
+
+            cout << endl;
+            string line;
+            while (getline(outputFile, line))
+            {
+                cout << line << endl;
+            }
+
+            outputFile.close();
+        }
+        else if (choice == "нет" || choice == "Нет" || choice == "НЕТ")
+        {
+            cout << "\nРезультат работы программы можете увидеть в файле output.txt.\n";
+            break;
+        }
+        else
+        {
+            cerr << "Некорректный ввод, попробуйте еще раз.\n";
+        }
+    }
 }

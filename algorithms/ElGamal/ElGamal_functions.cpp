@@ -176,7 +176,6 @@ void ElGamalCrypt(int& p, int& g, int& x, int& y, const string& plaintext, strin
 
 void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedText, ofstream& out) {
     
-
     stringstream ss(ciphertext);
     int a, b;
     while (ss >> a >> b) 
@@ -184,7 +183,6 @@ void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedTex
         int deM = MulMod(b, aXmodP(a, p - 1 - x, p), p);
         decryptedText += char(deM);
     }
-
     
     out << "\nДешифрованный текст:\n";
     out << decryptedText << endl;

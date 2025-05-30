@@ -35,7 +35,6 @@ string vernamEncrypt (const string& plaintext, const string& key, ofstream& out,
     out << "Шифруемый текст: " << plaintext << endl;
 
     string ciphertext;
-
     for (size_t i = 0; i < plaintext.length(); i++)
     {
         char encryptedChar = plaintext[i] ^ key[i];

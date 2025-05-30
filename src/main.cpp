@@ -10,7 +10,7 @@ int main() {
 
     string fileName;
 
-    cout << "\nИспользовать готовый файл? (да/нет)\nПри выборе ответа \"нет\" будет создан новый файл.\n";
+    filesQuestion();
     if(FileMethods() == "да")
     {
         fileName = PreparedFiles();
@@ -22,6 +22,8 @@ int main() {
 
     bool isShowingKeys = isPrintingKeys();
     crypt(cipherChoice(), fileName, isShowingKeys);
+
+    resultsOutput();
 
     return 0;
 }
