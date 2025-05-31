@@ -15,11 +15,11 @@ using namespace std;
 void PasswordCheck() {
     cout << "Для начала работы с приложением введите пароль.\n";
     
-    ifstream passwordFile("password.txt");
+    ifstream passwordFile("./prepared_files/password.txt");
     string password; 
     getline(passwordFile, password);
 
-    void* elgamalLib = dlopen("./libelgamal.so", RTLD_LAZY);
+    void* elgamalLib = dlopen("libelgamal.so", RTLD_LAZY);
     if (!elgamalLib) {
         cerr << "Ошибка загрузки библиотеки ElGamal: " << dlerror() << endl;
         exit(1);
@@ -226,15 +226,15 @@ void crypt(int cipherChoice, string fileName, bool showKeys) {
     
     switch(cipherChoice) {
         case 1:
-            libraryName = "./libviginer.so";
+            libraryName = "libviginer.so";
             algorithmFuncName = "Viginer_run";
             break;
         case 2:
-            libraryName = "./libvernam.so";
+            libraryName = "libvernam.so";
             algorithmFuncName = "Vernam_run";
             break;
         case 3:
-            libraryName = "./libelgamal.so";
+            libraryName = "libelgamal.so";
             algorithmFuncName = "ElGamal_run";
             break;
         default:
