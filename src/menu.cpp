@@ -15,7 +15,7 @@ using namespace std;
 void PasswordCheck() {
     cout << "Для начала работы с приложением введите пароль.\n";
     
-    ifstream passwordFile("./prepared_files/password.txt");
+    ifstream passwordFile("/usr/local/share/cryptographer/prepared_files/password.txt");
     string password; 
     getline(passwordFile, password);
 
@@ -113,13 +113,13 @@ string PreparedFiles() {
         switch (choice)
         {
             case 1:
-                return "prepared_files/1k_symbols.txt";
+                return "/usr/local/share/cryptographer/prepared_files/1k_symbols.txt";
             case 2:
-                return "prepared_files/10k_symbols.txt";
+                return "/usr/local/share/cryptographer/prepared_files/10k_symbols.txt";
             case 3:
-                return "prepared_files/100k_symbols.txt";
+                return "/usr/local/share/cryptographer/prepared_files/100k_symbols.txt";
             case 4:
-                return "prepared_files/special_symbols.txt";
+                return "/usr/local/share/cryptographer/prepared_files/special_symbols.txt";
             default:
                 cout << "Неверный формат ввода. Введите номер заготовленного файла.\n";
         }
