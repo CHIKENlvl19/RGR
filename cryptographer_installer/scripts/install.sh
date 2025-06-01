@@ -93,6 +93,14 @@ mkdir -p /usr/local/share/cryptographer/scripts
 cp scripts/*.sh /usr/local/share/cryptographer/scripts/
 chmod +x /usr/local/share/cryptographer/scripts/*.sh
 
+# В разделе "Установка скриптов управления"
+echo "Создание команды для удаления..."
+cat > /usr/local/bin/cryptographer-uninstall <<EOL
+#!/bin/bash
+sudo /usr/local/share/cryptographer/scripts/uninstall.sh
+EOL
+chmod +x /usr/local/bin/cryptographer-uninstall
+
 # Создание конфигурации
 if [ ! -f /etc/cryptographer.conf ]; then
   echo "Создание конфигурационного файла..."

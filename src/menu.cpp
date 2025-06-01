@@ -12,6 +12,28 @@
 
 using namespace std;
 
+void showHelp() {
+    cout << "Использование: cryptographer [ОПЦИЯ]...\n\n"
+         << "Опции:\n"
+         << "  -h, --help\t\tПоказать эту справку\n"
+         << "  -v, --version\t\tПоказать версию программы\n"
+         << "  --uninstall\t\tУдалить программу\n\n"
+         << "Для работы с программой запустите без аргументов.\n";
+}
+
+void showVersion() {
+    cout << "Cryptographer v1.0\n"
+         << "Система криптографических преобразований\n"
+         << "© 2025 НГТУ НЭТИ\n";
+}
+
+void startUninstall() {
+    cout << "Для удаления программы требуются права администратора.\n"
+         << "Выполните следующую команду:\n\n"
+         << "sudo /usr/local/share/cryptographer/scripts/uninstall.sh\n\n"
+         << "Или запустите: sudo cryptographer-uninstall\n";
+}
+
 void PasswordCheck() {
     cout << "Для начала работы с приложением введите пароль.\n";
     

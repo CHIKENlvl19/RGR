@@ -2,6 +2,9 @@
 
 using namespace std;
 
+void showHelp();
+void showVersion();
+void startUninstall();
 void Greeting();
 void filesQuestion();
 void PasswordCheck();

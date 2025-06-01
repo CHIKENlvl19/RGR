@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic -Iinclude -fPIC
+CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic -Iinclude -fPIC -O2
 LDFLAGS = -ldl
 
 LIB_ELGAMAL = libelgamal.so
