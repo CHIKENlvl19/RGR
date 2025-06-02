@@ -8,6 +8,7 @@ void startUninstall();
 void Greeting();
 void filesQuestion();
 void PasswordCheck();
+void oneMoreFile();
 string FileMethods();
 string PreparedFiles();
 string createUserFiles();

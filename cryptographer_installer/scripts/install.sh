@@ -117,7 +117,7 @@ fi
 echo "Проверка установки..."
 if /usr/local/bin/cryptographer --version; then
   echo "Установка завершена успешно!"
-  echo "Для использования: cryptographer"
+  echo "Для использования: sudo cryptographer"
 else
   echo "Ошибка при проверке установки!" >&2
   

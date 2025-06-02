@@ -82,7 +82,7 @@ void PasswordCheck() {
 
         if (attempts == 10)
         {
-            cout << "Превышен лимит попыток. Доступ запрещен.\n";
+            cout << "\nПревышен лимит попыток. Доступ запрещен.\n";
             exit(0);
         }
     }
@@ -96,6 +96,37 @@ void Greeting() {
 
 void filesQuestion() {
     cout << "\nИспользовать готовый файл? (да/нет)\nПри выборе ответа \"нет\" будет создан новый файл.\n";
+}
+
+void oneMoreFile() {
+    cout << "\nЖелаете зашифровать еще один файл? (да/нет)\n";
+
+    try {
+        while (true)
+        {
+            string choice;
+            cin >> choice;
+
+            if (choice == "да" || choice == "Да" || choice == "ДА")
+            {
+                break;
+            }
+            else if (choice == "нет" || choice == "Нет" || choice == "НЕТ")
+            {
+                cout << "\nРезультат работы программы можете увидеть в файле output.txt.\n";
+                exit(0);
+            }
+            else
+            {
+                cerr << "\nНекорректный ввод, попробуйте еще раз.\n";
+            }
+        }
+    }
+    catch (const exception& e)
+    {
+        cerr << "Ошибка: " << e.what() << endl;
+        exit(1);
+    }
 }
 
 string FileMethods() {
@@ -213,7 +244,7 @@ int cipherChoice() {
 }
 
 bool isPrintingKeys() {
-    cout << "Желаете видеть ключи, используемые для шифрования / дешифровки?\n";
+    cout << "\nЖелаете видеть ключи, используемые для шифрования / дешифровки?\n";
     try {
         while (true)
         {
@@ -310,7 +341,9 @@ void resultsOutput() {
                 cout << line << endl;
             }
 
-            outputFile.close();
+            outputFile.close();\
+
+            break;
         }
         else if (choice == "нет" || choice == "Нет" || choice == "НЕТ")
         {
