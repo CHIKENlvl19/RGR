@@ -55,7 +55,5 @@ int main(int argc, char* argv[]) {
         oneMoreFile();
     }
 
-    
-
     return 0;
 }

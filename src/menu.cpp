@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cctype>
 #include <string>
+#include <map>
 #include <locale>
 #include <limits>
 #include <stdexcept>
@@ -222,7 +223,7 @@ string createUserFiles() {
     }
 }
 
-int cipherChoice() {
+cipherAlgorithm cipherChoice() {
     cout << "\nКакой метод шифрования вы хотите использовать?\n";
     cout << "1. Шифр Вижинера.\n";
     cout << "2. Шифр Вернама.\n";
@@ -232,9 +233,17 @@ int cipherChoice() {
     while (true)
     {
         cin >> choice;
-        if (choice == 1 || choice == 2 || choice == 3)
+        if (choice == 1)
         {
-            return choice;
+            return cipherAlgorithm::Viginer;
+        }
+        else if (choice == 2)
+        {
+            return cipherAlgorithm::Vernam;
+        }
+        else if (choice == 3)
+        {
+            return cipherAlgorithm::ElGamal;
         }
         else
         {
@@ -272,27 +281,25 @@ bool isPrintingKeys() {
     }
 }
 
-void crypt(int cipherChoice, string fileName, bool showKeys) {
+void crypt(cipherAlgorithm cipherChoice, const string& fileName, bool showKeys) {
     void* libraryHandle = nullptr;
     const char* libraryName = nullptr;
     const char* algorithmFuncName = nullptr;
     
-    switch(cipherChoice) {
-        case 1:
-            libraryName = "libviginer.so";
-            algorithmFuncName = "Viginer_run";
-            break;
-        case 2:
-            libraryName = "libvernam.so";
-            algorithmFuncName = "Vernam_run";
-            break;
-        case 3:
-            libraryName = "libelgamal.so";
-            algorithmFuncName = "ElGamal_run";
-            break;
-        default:
-            cerr << "Неверный выбор алгоритма\n";
-            return;
+    map<cipherAlgorithm, pair<const char*, const char*>> algorithmMap = {
+        {cipherAlgorithm::Viginer, {"libviginer.so", "Viginer_run"}},
+        {cipherAlgorithm::Vernam, {"libvernam.so", "Vernam_run"}},
+        {cipherAlgorithm::ElGamal, {"libelgamal.so", "ElGamal_run"}}
+    };
+
+    auto it = algorithmMap.find(cipherChoice);
+    if (it != algorithmMap.end())
+    {
+        libraryName = it->second.first;
+        algorithmFuncName = it->second.second;
+    } else
+    {
+        cerr << "Неверный выбор алгоритма. Попробуйте еще раз.";
     }
     
     libraryHandle = dlopen(libraryName, RTLD_LAZY);
