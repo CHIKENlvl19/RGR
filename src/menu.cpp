@@ -8,10 +8,12 @@
 #include <limits>
 #include <stdexcept>
 #include <dlfcn.h>
+#include <filesystem>
 #include "header.h"
 #include "crypto_interface.h"
 
 using namespace std;
+namespace fs = std::filesystem;
 
 void showHelp() {
     cout << "Использование: cryptographer [ОПЦИЯ]...\n\n"
@@ -95,10 +97,6 @@ void Greeting() {
     cout << "Добро пожаловать в программу шифрования и дешифровки текста Cryptographer!\n\n";
 }
 
-void filesQuestion() {
-    cout << "\nИспользовать готовый файл? (да/нет)\nПри выборе ответа \"нет\" будет создан новый файл.\n";
-}
-
 void oneMoreFile() {
     cout << "\nЖелаете зашифровать еще один файл? (да/нет)\n";
 
@@ -114,7 +112,7 @@ void oneMoreFile() {
             }
             else if (choice == "нет" || choice == "Нет" || choice == "НЕТ")
             {
-                cout << "\nРезультат работы программы можете увидеть в файле output.txt.\n";
+                cout << "\nРезультат работы программы можете увидеть в текущей директории.\n";
                 exit(0);
             }
             else
@@ -131,8 +129,9 @@ void oneMoreFile() {
 }
 
 string FileMethods() {
+    cout << "\nИспользовать уже существующий файл? (да/нет)\nПри выборе ответа \"нет\" будет создан новый файл.\n";
+    
     string answer;
-
     while (true)
     {
         if(!getline(cin, answer))
@@ -153,12 +152,31 @@ string FileMethods() {
     }
 }
 
+string userFiles() {
+    fs::path currentPath = fs::current_path();
+
+    cout << "Содержимое текущей директории: " << currentPath << endl;
+
+    for (const auto& entry : fs::directory_iterator(currentPath))
+    {
+        cout << entry.path().filename().string() << endl;
+    }
+    cout << endl;
+
+    cout << "Введите имя файла вместе с расширением: ";
+    string fileName;
+    cin >> fileName;
+
+    return fileName;
+}
+
 string PreparedFiles() {
     cout << "\nФайл какого размера Вы бы хотели использовать?\n";
     cout << "1. 1.000 символов - отрывок из романа в стихах \"Евгений Онегин\", Александр Сергеевич Пушкин\n";
     cout << "2. 10.000 символов - отрывок из книги \"ХАКИНГ Искусство эксплойта Второе издание\", Джон Эриксон\n";
     cout << "3. 100.000 символов - отрывок из романа-эпопеи \"Война и мир\", Лев Николаевич Толстой\n";
     cout << "4. 180 символов - набор специальных символов.\n";
+    cout << "5. Использовать пользовательский файл.\n";
 
     int choice;
     while (true)
@@ -174,6 +192,10 @@ string PreparedFiles() {
                 return "/usr/local/share/cryptographer/prepared_files/100k_symbols.txt";
             case 4:
                 return "/usr/local/share/cryptographer/prepared_files/special_symbols.txt";
+            case 5: {
+                string fileName = userFiles();
+                return fileName;
+            }  
             default:
                 cout << "Неверный формат ввода. Введите номер заготовленного файла.\n";
         }
@@ -323,43 +345,3 @@ void crypt(cipherAlgorithm cipherChoice, const string& fileName, bool showKeys) 
     dlclose(libraryHandle);
 }
 
-void resultsOutput() {
-
-    cout << "\nЖелаете вывести результат работы программы в консоль? (да/нет): ";
-
-    while (true)
-    {
-        string choice;
-        cin >> choice;
-
-        if (choice == "да" || choice == "Да" || choice == "ДА")
-        {
-            ifstream outputFile("output.txt");
-
-            if (!outputFile)
-            {
-                cerr << "\nОшибка! Не удалость октрыть файл." << endl;
-            }
-
-            cout << endl;
-            string line;
-            while (getline(outputFile, line))
-            {
-                cout << line << endl;
-            }
-
-            outputFile.close();\
-
-            break;
-        }
-        else if (choice == "нет" || choice == "Нет" || choice == "НЕТ")
-        {
-            cout << "\nРезультат работы программы можете увидеть в файле output.txt.\n";
-            break;
-        }
-        else
-        {
-            cerr << "Некорректный ввод, попробуйте еще раз.\n";
-        }
-    }
-}

@@ -29,7 +29,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-
     while (true)
     {
         PasswordCheck();
@@ -37,7 +36,6 @@ int main(int argc, char* argv[]) {
 
         string fileName;
 
-        filesQuestion();
         if(FileMethods() == "да")
         {
             fileName = PreparedFiles();
@@ -49,8 +47,6 @@ int main(int argc, char* argv[]) {
 
         bool isShowingKeys = isPrintingKeys();
         crypt(cipherChoice(), fileName, isShowingKeys);
-
-        resultsOutput();
 
         oneMoreFile();
     }

@@ -21,4 +21,4 @@ string createUserFiles();
 cipherAlgorithm cipherChoice();
 void crypt(cipherAlgorithm cipherChoice, const string& fileName, bool showKeys);
 bool isPrintingKeys();
-void resultsOutput();
+string userFiles();

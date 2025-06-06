@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <random>
+#include <filesystem>
 #include "../include/Vernam/Vernam_functions.h"
 
 using namespace std;
@@ -23,16 +24,14 @@ string vernamEncrypt (const string& plaintext, const string& key, ofstream& out,
     
     if (isShowingKeys)
     {
-        out << "Случайно сгенерированный ключ: ";
+        cout << "Случайно сгенерированный ключ: ";
     
         for (char c : key)
         {
-            out << hex << (int)(unsigned char)c;
+            cout << hex << (int)(unsigned char)c;
         }
-        out << endl;
+        cout << endl;
     }
-
-    out << "Шифруемый текст: " << plaintext << endl;
 
     string ciphertext;
     for (size_t i = 0; i < plaintext.length(); i++)
@@ -41,7 +40,6 @@ string vernamEncrypt (const string& plaintext, const string& key, ofstream& out,
         ciphertext += encryptedChar;
     }
 
-    out << "Зашифрованный текст: " << endl;
     for (char c : ciphertext)
     {
         out << hex << (int)(unsigned char)c;
@@ -60,14 +58,16 @@ void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out) 
         plaintext += decryptedChar;
     }
 
-    out << "Дешифрованный текст: " << endl;
     out << plaintext;
 }
 
 extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
     try {
-        ifstream inFile(fileName);
-        ofstream outFile("output.txt");
+        ifstream inFile(fileName, ios::binary);
+        if(!inFile)
+        {
+            cerr << "Ошибка открытия входного файла: " << fileName << endl;
+        }
 
         string plaintext;
         inFile.seekg(0, ios::end);
@@ -79,21 +79,32 @@ extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
         {
             plaintext.assign(istreambuf_iterator<char>(inFile), istreambuf_iterator<char>());
         } else {
-            cerr << "Входной файл пуст: " << fileName;
+            throw runtime_error("Входной файл пуст.");
         }
         inFile.close();
 
-        if (plaintext.empty()) {
-            throw runtime_error("Входной файл пуст");
-        }
-
         const string key = randomKeyGenerator(plaintext.length());
-        string cipherText = vernamEncrypt(plaintext, key, outFile, isShowingKeys);
 
-        string decryptedText;
-        vernamDecrypt(cipherText, key, outFile);
+        filesystem::path inputPath(fileName);
+        string baseName = inputPath.filename().string();
 
-        outFile.close();
+        ofstream encryptedOutFile("encrypted_" + baseName, ios::binary);
+        if (!encryptedOutFile) {
+            throw runtime_error("Ошибка открытия выходного файла для шифрования.");
+        }
+        cout << "\nФайл шифруется, подождите...\n";
+        string cipherText = vernamEncrypt(plaintext, key, encryptedOutFile, isShowingKeys);
+        cout << "\nФайл успешно зашифрован!\n";
+        
+        //string decryptedText;
+        ofstream decryptedOutFile("decrypted_" + baseName, ios::binary);
+        if (!decryptedOutFile) {
+            throw runtime_error("Ошибка открытия выходного файла для расшифрования.");
+        }
+        cout << "\nФайл дешифруется, подождите...\n";
+        vernamDecrypt(cipherText, key, decryptedOutFile);
+        cout << "\nФайл успешно дешифрован!\n";
+        decryptedOutFile.close();
 
     }
     catch (const exception& e)
