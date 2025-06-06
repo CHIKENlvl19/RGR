@@ -13,6 +13,7 @@
 #include "crypto_interface.h"
 
 using namespace std;
+using namespace Colors;
 namespace fs = std::filesystem;
 
 void showHelp() {
@@ -38,7 +39,7 @@ void startUninstall() {
 }
 
 void PasswordCheck() {
-    cout << "Для начала работы с приложением введите пароль.\n";
+    cout << IMPORTANT << "Для начала работы с приложением введите пароль.\n" << RESET;
     
     ifstream passwordFile("/usr/local/share/cryptographer/prepared_files/password.txt");
     string password; 
@@ -46,7 +47,7 @@ void PasswordCheck() {
 
     void* elgamalLib = dlopen("libelgamal.so", RTLD_LAZY);
     if (!elgamalLib) {
-        cerr << "Ошибка загрузки библиотеки ElGamal: " << dlerror() << endl;
+        cerr << ERROR << "Ошибка загрузки библиотеки ElGamal: " << RESET << dlerror() << endl;
         exit(1);
     }
     
@@ -54,7 +55,7 @@ void PasswordCheck() {
     PasswordDecryptFunc decryptFunc = (PasswordDecryptFunc)dlsym(elgamalLib, "ElGamal_PasswordDecrypt");
     
     if (!decryptFunc) {
-        cerr << "Ошибка загрузки функции расшифровки: " << dlerror() << endl;
+        cerr << ERROR << "Ошибка загрузки функции расшифровки: " << RESET << dlerror() << endl;
         dlclose(elgamalLib);
         exit(1);
     }
@@ -73,19 +74,19 @@ void PasswordCheck() {
         
         if (passwordMatch)
         {
-            cout << "Пароль верный. Доступ разрешен. Нажмите Enter для продолжения.\n\n";
+            cout << SUCCESS << "Пароль верный. Доступ разрешен. Нажмите Enter для продолжения.\n\n";
             cin.ignore(1000, '\n');
             break;
         }
         else
         {
-            cout << "Пароль неверный, осталось попыток: " << 10 - attempts - 1 << endl;
+            cout << WARNING << "Пароль неверный, осталось попыток: " << RESET << 10 - attempts - 1 << endl;
             attempts++;
         }
 
         if (attempts == 10)
         {
-            cout << "\nПревышен лимит попыток. Доступ запрещен.\n";
+            cout << ERROR << "\nПревышен лимит попыток. Доступ запрещен.\n";
             exit(0);
         }
     }
