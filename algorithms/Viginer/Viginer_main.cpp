@@ -92,6 +92,7 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         filesystem::path inputPath(fileName);
         string baseName = inputPath.filename().string();
 
+        cout << "\nФайл шифруется, подождите...\n";
         string cipherText = ViginerEncrypt(plainText, key);
         ofstream encryptedOutFile("encrypted_" + baseName, ios::binary);
         if (!encryptedOutFile) 
@@ -100,8 +101,9 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         }
         encryptedOutFile.write(cipherText.data(), cipherText.size());
         encryptedOutFile.close();
-        cout << "Файл зашифрован!" << endl;
+        cout << "\nФайл успешно зашифрован!\n" << endl;
 
+        cout << "\nФайл дешифруется, подождите...\n";
         string decryptedText = ViginerDecrypt(cipherText, key);
         ofstream decryptedOutFile("decrypted_" + baseName, ios::binary);
         if (!decryptedOutFile) 
@@ -110,7 +112,7 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         }
         decryptedOutFile.write(decryptedText.data(), decryptedText.size());
         decryptedOutFile.close();
-        cout << "Файл расшифрован!" << endl;
+        cout << "\nФайл успешно дешифрован!\n" << endl;
 
     } catch (const exception& e) {
         cerr << "Ошибка: " << e.what() << endl;

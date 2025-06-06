@@ -96,7 +96,6 @@ extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
         string cipherText = vernamEncrypt(plaintext, key, encryptedOutFile, isShowingKeys);
         cout << "\nФайл успешно зашифрован!\n";
         
-        //string decryptedText;
         ofstream decryptedOutFile("decrypted_" + baseName, ios::binary);
         if (!decryptedOutFile) {
             throw runtime_error("Ошибка открытия выходного файла для расшифрования.");
