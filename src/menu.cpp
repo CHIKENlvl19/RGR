@@ -65,8 +65,9 @@ void PasswordCheck() {
     {
         cout << "Пароль: ";
         string passwordInput;
-        getline(cin, passwordInput);
-        
+        //getline(cin, passwordInput);
+        cin >> passwordInput;
+
         char* decryptedPassword = decryptFunc(4273, 1404, password.c_str());
         bool passwordMatch = (passwordInput == decryptedPassword);
         
@@ -74,7 +75,8 @@ void PasswordCheck() {
         
         if (passwordMatch)
         {
-            cout << SUCCESS << "Пароль верный. Доступ разрешен. Нажмите Enter для продолжения.\n\n";
+                                                            //Нажмите Enter для продолжения.
+            cout << SUCCESS << "Пароль верный. Доступ разрешен." << RESET << "\n\n";
             cin.ignore(1000, '\n');
             break;
         }
@@ -118,13 +120,13 @@ void oneMoreFile() {
             }
             else
             {
-                cerr << "\nНекорректный ввод, попробуйте еще раз.\n";
+                cerr << WARNING << "\nНекорректный ввод, попробуйте еще раз.\n" << RESET;
             }
         }
     }
     catch (const exception& e)
     {
-        cerr << "Ошибка: " << e.what() << endl;
+        cerr << ERROR << "Ошибка: " << RESET << e.what() << endl;
         exit(1);
     }
 }
@@ -139,13 +141,13 @@ string FileMethods() {
         {
             cin.clear();
             cin.ignore(1000, '\n');
-            cout << "\nНекорректный ввод. Пожалуйста, повторите попытку.\n";
+            cout << WARNING << "\nНекорректный ввод. Пожалуйста, повторите попытку.\n" << RESET;
             continue;
         }
 
         if (answer.empty())
         {
-            cout << "Ввод не должен быть пустым. Пожалуйста, повторите попытку.\n";
+            cout << WARNING << "Ввод не должен быть пустым. Пожалуйста, повторите попытку.\n" << RESET;
             continue;
         }
 
@@ -177,7 +179,7 @@ string PreparedFiles() {
     cout << "2. 10.000 символов - отрывок из книги \"ХАКИНГ Искусство эксплойта Второе издание\", Джон Эриксон\n";
     cout << "3. 100.000 символов - отрывок из романа-эпопеи \"Война и мир\", Лев Николаевич Толстой\n";
     cout << "4. 180 символов - набор специальных символов.\n";
-    cout << "5. Использовать пользовательский файл из текущей директории.\n";
+    cout << SUCCESS << "5. Использовать пользовательский файл из текущей директории." << RESET << "\n";
 
     int choice;
     while (true)
@@ -270,7 +272,7 @@ cipherAlgorithm cipherChoice() {
         }
         else
         {
-            cout << "Неверный формат ввода. Введите номер шифра (1-3).\n";
+            cout << WARNING << "Неверный формат ввода. Введите номер шифра (1-3).\n";
         }
     }
 }
@@ -322,7 +324,7 @@ void crypt(cipherAlgorithm cipherChoice, const string& fileName, bool showKeys) 
         algorithmFuncName = it->second.second;
     } else
     {
-        cerr << "Неверный выбор алгоритма. Попробуйте еще раз.";
+        cerr << WARNING <<"Неверный выбор алгоритма. Попробуйте еще раз." << RESET;
     }
     
     libraryHandle = dlopen(libraryName, RTLD_LAZY);

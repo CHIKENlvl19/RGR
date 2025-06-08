@@ -6,6 +6,7 @@
 #include "../include/Vernam/Vernam_functions.h"
 
 using namespace std;
+using namespace Colors;
 
 string randomKeyGenerator(size_t length) {
     string key;
@@ -66,7 +67,7 @@ extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
         ifstream inFile(fileName, ios::binary);
         if(!inFile)
         {
-            cerr << "Ошибка открытия входного файла: " << fileName << endl;
+            cerr << ERROR << "Ошибка открытия входного файла: " << RESET << fileName << endl;
         }
 
         string plaintext;

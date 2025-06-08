@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -Iinclude -fPIC -O3
+CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -Iinclude -fPIC -O3 -march=native
 LDFLAGS = -ldl
 
 LIB_ELGAMAL = libelgamal.so
