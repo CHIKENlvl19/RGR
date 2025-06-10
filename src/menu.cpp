@@ -27,7 +27,7 @@ void showHelp() {
 
 void showVersion() {
     cout << "Cryptographer v1.0\n"
-         << "Система криптографических преобразований\n"
+         << "Система криптографических преобразований Encryption Algorithm RGR\n"
          << "© 2025 НГТУ НЭТИ\n";
 }
 

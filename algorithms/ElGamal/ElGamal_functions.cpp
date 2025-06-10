@@ -47,7 +47,7 @@ int gcd(int a, int b) {
 
 int aXmodP(int a, int x, int p) {
     int result = 1;
-    a = a % p; // Убедитесь, что a меньше p
+    a = a % p; // убедимся, что a меньше p
 
     while (x > 0) 
     {
