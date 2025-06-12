@@ -1,7 +1,9 @@
 #pragma once
-#include <vector>
+
 #include <string>
-#include <tuple>
+#include <fstream>
+#include <random>
+#include <gmpxx.h>
 
 using namespace std;
 
@@ -16,12 +18,5 @@ void ElGamal_run(const char* fileName, int isShowingKeys);
 }
 #endif
 
-bool isPrime(int p);
-int gcd(int a, int b);
-int aXmodP (int a, int x, int p);
-int MulMod(int a, int b, int n);
-vector<int> prime_factors(int n);
-bool is_primitive_root(int g, int p);
-tuple<int, int, int, int> KeysGenerator();
-void ElGamalCrypt(int& p, int& g, int& x, int& y, const string& plaintext, string& ciphertext, ofstream& out, bool isShowingKeys);
-void ElGamalDecrypt(int p, int x, const string& ciphertext, string& decryptedText, ofstream& out);
+// Объявление только для функции, используемой в других местах
+tuple<mpz_class, mpz_class, mpz_class, mpz_class> KeysGenerator(bool isShowingKeys, gmp_randstate_t state);

@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -Iinclude -fPIC -O3 -march=native
-LDFLAGS = -ldl
+LDFLAGS = -ldl -lgmpxx -lgmp
 
 LIB_ELGAMAL = libelgamal.so
 LIB_VERNAM = libvernam.so
@@ -16,13 +16,13 @@ $(MAIN): src/main.cpp src/menu.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(LIB_ELGAMAL): algorithms/ElGamal/ElGamal_functions.cpp
-	$(CXX) -shared $(CXXFLAGS) -o $@ $^ -lcrypto
+	$(CXX) -shared $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -lcrypto
 
 $(LIB_VERNAM): algorithms/Vernam/Vernam_main.cpp
-	$(CXX) -shared $(CXXFLAGS) -o $@ $^
+	$(CXX) -shared $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(LIB_VIGINER): algorithms/Viginer/Viginer_main.cpp
-	$(CXX) -shared $(CXXFLAGS) -o $@ $^
+	$(CXX) -shared $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f $(MAIN) *.so

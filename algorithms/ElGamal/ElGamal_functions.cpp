@@ -10,43 +10,159 @@
 #include <tuple>
 #include <filesystem>
 #include <random>
+#include <gmpxx.h>
 #include "../include/ElGamal/ElGamal_functions.h"
 
 using namespace std;
 using namespace Colors;
 
-bool isPrime(int p) {
-    if (p % 2 == 0 || p % 3 == 0 || p <= 1) 
-    {
-        return false;
-    }
+bool isPrime(const mpz_class& p) {
+    return mpz_probab_prime_p(p.get_mpz_t(), 25) > 0;
+}
 
-    int squareRootN = static_cast<int>(sqrt(p)) + 1;
+mpz_class gcd(const mpz_class& a, const mpz_class& b) {
+    mpz_class result;
+    mpz_gcd(result.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
+
+    return result;
+}
+
+mpz_class aXmodP(const mpz_class& a, const mpz_class& x, const mpz_class& p) {
+    mpz_class result;
+    mpz_powm(result.get_mpz_t(), a.get_mpz_t(), x.get_mpz_t(), p.get_mpz_t());
+    return result;
+}
+
+mpz_class MulMod(const mpz_class& a, const mpz_class& b, const mpz_class& n) {
+    mpz_class result;
+    mpz_mul(result.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
+    mpz_mod(result.get_mpz_t(), result.get_mpz_t(), n.get_mpz_t());
+    return result;
+}
+
+vector<mpz_class> prime_factors(const mpz_class& n) {
+    vector<mpz_class> factors;
     
-    for (int i = 5; i * i <= squareRootN; i += 6) 
-    {
-        if (p % i == 0 || p % (i + 2) == 0)
-        {
-            return false;
-        } 
+    if (n <= 1) {
+        return factors;
     }
 
-    return true;
-}
+    mpz_class num = n; //с копией
 
-int gcd(int a, int b) {
-
-    while (b != 0) 
-    {
-        int r = b;
-        b = a % b;
-        a = r;
+    if (num % 2 == 0) {
+        factors.push_back(2);
+        while (num % 2 == 0) {
+            num /= 2;
+        }
     }
 
-    return a;
+
+    mpz_class i = 3;
+    mpz_class max_factor;
+    mpz_sqrt(max_factor.get_mpz_t(), num.get_mpz_t()); // max_factor = floor(sqrt(num))
+
+    while (i <= max_factor && num > 1) {
+        if (num % i == 0) {
+            factors.push_back(i);
+            while (num % i == 0) {
+                num /= i;
+            }
+            // max_factor после деления
+            mpz_sqrt(max_factor.get_mpz_t(), num.get_mpz_t());
+        }
+        i += 2; // только нечётные числа
+    }
+
+    // если остался множитель > 1 (простое число)
+    if (num > 1) {
+        factors.push_back(num);
+    }
+
+    return factors;
 }
 
-int aXmodP(int a, int x, int p) {
+mpz_class find_primitive_root(const mpz_class& p, const mpz_class& pm1, const vector<mpz_class>& factors) {
+    for (mpz_class g = 2; g < p; g++) {
+        bool is_primitive = true;
+        for (const auto& q : factors) {
+            if (aXmodP(g, pm1 / q, p) == 1) {
+                is_primitive = false;
+                break;
+            }
+        }
+        if (is_primitive) {
+            return g;
+        }
+    }
+    throw runtime_error("Не найден примитивный корень");
+}
+
+mpz_class generate_safe_prime(gmp_randstate_t state, unsigned long bits) {
+    mpz_class q, p;
+    do {
+        mpz_urandomb(q.get_mpz_t(), state, bits - 1);
+        mpz_nextprime(q.get_mpz_t(), q.get_mpz_t());
+        p = 2 * q + 1;
+        if (mpz_probab_prime_p(p.get_mpz_t(), 25) > 0) {
+            return p;
+        }
+    } while (true);
+}
+
+tuple<mpz_class, mpz_class, mpz_class, mpz_class> KeysGenerator(bool isShowingKeys, gmp_randstate_t state) {
+    mpz_class x, y;
+    
+    mpz_class p = generate_safe_prime(state, 128); // 128-битное безопасное простое
+    mpz_class pm1 = p - 1;
+    vector<mpz_class> factors = {mpz_class(2), pm1 / 2}; // p-1 = 2*q
+    mpz_class g = find_primitive_root(p, pm1, factors); 
+
+    // секретный ключ
+    mpz_urandomm(x.get_mpz_t(), state, pm1.get_mpz_t());
+    y = aXmodP(g, x, p);
+    
+    if (isShowingKeys) {
+        gmp_printf("\nОткрытый ключ (p, g, y) = (%Zd, %Zd, %Zd)\n", p.get_mpz_t(), g.get_mpz_t(), y.get_mpz_t());
+        gmp_printf("Закрытый ключ x = %Zd\n", x.get_mpz_t());
+    }
+    
+    return make_tuple(p, g, x, y);
+}
+
+void ElGamalCrypt(mpz_class& p, mpz_class& g, mpz_class& y, const string& plaintext, ofstream& out, gmp_randstate_t state) {
+    for (size_t i = 0; i < plaintext.size(); ++i) {
+        mpz_class m = static_cast<unsigned char>(plaintext[i]);
+        mpz_class k;
+        
+        do {
+            mpz_urandomm(k.get_mpz_t(), state, p.get_mpz_t());
+        } while (k <= 1 || mpz_cmp(k.get_mpz_t(), p.get_mpz_t()) >= 0);
+        
+        mpz_class a = aXmodP(g, k, p);
+        mpz_class b = MulMod(aXmodP(y, k, p), m, p);
+        
+        string a_str = a.get_str();
+        string b_str = b.get_str();
+        
+        out << a_str << " " << b_str << " ";
+    }
+}
+
+void ElGamalDecrypt(const mpz_class& p, const mpz_class& x, ifstream& in, string& decryptedText) {
+    string a_str, b_str;
+    while (in >> a_str >> b_str) {
+        mpz_class a, b;
+        a = a_str;
+        b = b_str;
+
+        mpz_class s = aXmodP(a, p - 1 - x, p); // s = a^(p-1-x) mod p
+        mpz_class m = MulMod(b, s, p); // m = b * s mod p
+
+        decryptedText += static_cast<char>(m.get_ui()); // восстановление байта
+    }
+}
+
+int simpleAxModP(int a, int x, int p) {
     int result = 1;
     a = a % p; // убедимся, что a меньше p
 
@@ -64,119 +180,9 @@ int aXmodP(int a, int x, int p) {
     return result;
 }
 
-int MulMod(int a, int b, int n) {
+int simpleMulMod(int a, int b, int n) {
     return (a * b) % n;
 }
-
-vector<int> prime_factors(int n) {
-    vector<int> factors;
-
-    if (n % 2 == 0) 
-    {
-        factors.push_back(2);
-
-        while (n % 2 == 0) 
-        {
-            n /= 2;
-        }
-    }
-    for (int i = 3; i * i <= n; i += 2) 
-    {
-        if (n % i == 0) 
-        {
-            factors.push_back(i);
-
-            while (n % i == 0) 
-            {
-                n /= i;
-            }
-        }
-    }
-    if (n > 2) 
-    {
-        factors.push_back(n);
-    }
-
-    return factors;
-}
-
-bool is_primitive_root(int g, int p) {
-    if (g == 1 || gcd(g, p) != 1) 
-    {
-        return false;
-    }
-    int m = p - 1;
-
-    vector<int> factors = prime_factors(m);
-    for (int q : factors) 
-    {
-        if (aXmodP(g, m / q, p) == 1) 
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-tuple<int, int, int, int> KeysGenerator(bool isShowingKeys, mt19937& gen) {
-    int p, g, x, y;
-    uniform_int_distribution<int> dist_p(1000, 9999);
-    uniform_int_distribution<int> dist_g(1, 0); // инициализация-заглушка
-    
-    do {
-        p = dist_p(gen);
-    } while (!isPrime(p));
-    
-    dist_g = uniform_int_distribution<int>(1, p-1);
-    do {
-        g = dist_g(gen);
-    } while (!is_primitive_root(g, p));
-    
-    uniform_int_distribution<int> dist_x(1, p-1);
-    x = dist_x(gen);
-    y = aXmodP(g, x, p);
-
-    if (isShowingKeys)
-    {
-        cout << "\nОткрытый ключ (p, g, y) = (" << p << ", " << g << ", " << y << ")" << endl;
-        cout << "Закрытый ключ x = " << x << endl;
-    }   
-
-    return make_tuple(p, g, x, y);
-}
-
-void ElGamalCrypt(int& p, int& g, int& y, const string& plaintext, ofstream& out, mt19937& gen) {
-    vector<int> kValues(plaintext.size());
-    uniform_int_distribution<int> dist_k(1, p-2);
-    
-    for (size_t i = 0; i < plaintext.size(); ++i) {
-        kValues[i] = dist_k(gen);
-    }
-
-    for (size_t i = 0; i < plaintext.size(); ++i) 
-    {
-        int m = static_cast<int>(plaintext[i]);
-        int k = kValues[i];
-
-        int a = aXmodP(g, k, p);
-        int b = MulMod(aXmodP(y, k, p), m, p);
-
-        out.write(reinterpret_cast<char*>(&a), sizeof(a));
-        out.write(reinterpret_cast<char*>(&b), sizeof(b));
-    }
-}
-
-void ElGamalDecrypt(int p, int x, ifstream& in, string& decryptedText) {
-    int a, b;
-
-    while (in.read(reinterpret_cast<char*>(&a), sizeof(a)) && 
-           in.read(reinterpret_cast<char*>(&b), sizeof(b))) {
-        int deM = MulMod(b, aXmodP(a, p - 1 - x, p), p);
-        decryptedText += static_cast<char>(deM);
-    }
-}
-
 
 string ElGamalPasswordDecrypt(int p, int x, const string& ciphertext) {
     
@@ -185,7 +191,7 @@ string ElGamalPasswordDecrypt(int p, int x, const string& ciphertext) {
     int a, b;
     while (ss >> a >> b) 
     {
-        int deM = MulMod(b, aXmodP(a, p - 1 - x, p), p);
+        int deM = simpleMulMod(b, simpleAxModP(a, p - 1 - x, p), p);
         decryptedText += char(deM);
     }
 
@@ -205,14 +211,19 @@ extern "C" char* ElGamal_PasswordDecrypt(int p, int x, const char* ciphertext) {
 extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
 
     try {
-        random_device rd;
-        mt19937 gen(rd());
+        gmp_randstate_t state;
+        gmp_randinit_default(state);
 
-        auto generated_keys = KeysGenerator(isShowingKeys, gen);
-        int p = get<0>(generated_keys);
-        int g = get<1>(generated_keys);
-        int x = get<2>(generated_keys);
-        int y = get<3>(generated_keys);
+        random_device rd;
+        unsigned long seed = rd();
+        mpz_class seed_mpz = seed;
+        gmp_randseed(state, seed_mpz.get_mpz_t());
+
+        auto generated_keys = KeysGenerator(isShowingKeys, state);
+        mpz_class p = get<0>(generated_keys);
+        mpz_class g = get<1>(generated_keys);
+        mpz_class x = get<2>(generated_keys);
+        mpz_class y = get<3>(generated_keys);
 
         ifstream inFile(fileName, ios::binary);
         if (!inFile) 
@@ -220,19 +231,18 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
             throw runtime_error ("Ошибка открытия входного файла: ");
         }
 
-
-        string plaintext;
         inFile.seekg(0, ios::end);
         size_t size = inFile.tellg();
         inFile.seekg(0, ios::beg);
 
-        if (size > 0) 
-        {
-            plaintext.assign(istreambuf_iterator<char>(inFile), istreambuf_iterator<char>());
+        vector<char> buffer(size);
+        if (size > 0) {
+            inFile.read(buffer.data(), size);
         } else {
             cerr << "Входной файл пуст: " << fileName << endl;
         }
         inFile.close();
+        string plaintext(buffer.data(), size);
 
         filesystem::path inputPath(fileName);
         string baseName = inputPath.filename().string();
@@ -244,7 +254,7 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
 
         }
         cout << WARNING << "\nФайл шируется, подождите..." << RESET << endl;
-        ElGamalCrypt(p, g, y, plaintext, encryptedOutFile, gen);
+        ElGamalCrypt(p, g, y, plaintext, encryptedOutFile, state);
         encryptedOutFile.close();
         cout << SUCCESS << "Файл зашифрован!" << RESET << endl;
 
@@ -266,10 +276,11 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         ElGamalDecrypt(p, x, encryptedInFile, decryptedText);
         encryptedInFile.close();
 
-        decryptedOutFile << decryptedText;
+        decryptedOutFile.write(decryptedText.data(), decryptedText.size());
         decryptedOutFile.close();
         cout << SUCCESS << "Файл расшифрован!" << RESET << endl;
 
+        gmp_randclear(state); // очистка состояния генератора
     } catch (const exception& e) {
         cerr << ERROR << "Ошибка: " << RESET << e.what() << endl;
     }    
