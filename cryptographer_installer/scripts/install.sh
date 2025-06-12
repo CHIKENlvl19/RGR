@@ -8,39 +8,39 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Определение дистрибутива
-if [ -f /etc/os-release ]; then
-  . /etc/os-release
-  OS=$ID
-  if [[ "$OS" == "kali" || "$PRETTY_NAME" == *"Kali"* ]]; then
-    OS="kali"
-  fi
-else
-  OS=$(uname -s)
-fi
+#if [ -f /etc/os-release ]; then
+#  . /etc/os-release
+#  OS=$ID
+#  if [[ "$OS" == "kali" || "$PRETTY_NAME" == *"Kali"* ]]; then
+#    OS="kali"
+#  fi
+#else
+#  OS=$(uname -s)
+#fi
 
 # Установка зависимостей
-echo "Установка системных зависимостей..."
-case $OS in
-  ubuntu|debian|pop|linuxmint|kali)
-    apt-get update
-    apt-get install -y build-essential libgmp-dev libssl-dev
-    # Для Kali может потребоваться
-    apt-get install -y patchelf || echo "Patchelf не установлен, продолжаем без него"
-    ;;
-  fedora|centos|rhel)
-    yum groupinstall -y "Development Tools"
-    yum install -y gmp-devel openssl-devel
-    yum install -y patchelf || echo "Patchelf не установлен, продолжаем без него"
-    ;;
-  arch|manjaro)
-    pacman -Sy --noconfirm base-devel gmp openssl
-    pacman -Sy --noconfirm patchelf || echo "Patchelf не установлен, продолжаем без него"
-    ;;
-  *)
-    echo "Неподдерживаемый дистрибутив: $OS" >&2
-    echo "Установите вручную: build-essential, libgmp-dev, libssl-dev" >&2
-    ;;
-esac
+#echo "Установка системных зависимостей..."
+#case $OS in
+#  ubuntu|debian|pop|linuxmint|kali)
+#    apt-get update
+#    apt-get install -y build-essential libgmp-dev libssl-dev
+#    # Для Kali может потребоваться
+#    apt-get install -y patchelf || echo "Patchelf не установлен, продолжаем без него"
+#    ;;
+#  fedora|centos|rhel)
+#    yum groupinstall -y "Development Tools"
+#    yum install -y gmp-devel openssl-devel
+#    yum install -y patchelf || echo "Patchelf не установлен, продолжаем без него"
+#    ;;
+#  arch|manjaro)
+#    pacman -Sy --noconfirm base-devel gmp openssl
+#    pacman -Sy --noconfirm patchelf || echo "Patchelf не установлен, продолжаем без него"
+#    ;;
+#  *)
+#    echo "Неподдерживаемый дистрибутив: $OS" >&2
+#    echo "Установите вручную: build-essential, libgmp-dev, libssl-dev" >&2
+#    ;;
+#esac
 
 # Установка файлов
 echo "Установка программы..."

@@ -9,6 +9,7 @@
 #include <fstream>
 #include <tuple>
 #include <filesystem>
+#include <random>
 #include "../include/ElGamal/ElGamal_functions.h"
 
 using namespace std;
@@ -118,17 +119,22 @@ bool is_primitive_root(int g, int p) {
     return true;
 }
 
-tuple<int, int, int, int> KeysGenerator(bool isShowingKeys) {
+tuple<int, int, int, int> KeysGenerator(bool isShowingKeys, mt19937& gen) {
     int p, g, x, y;
+    uniform_int_distribution<int> dist_p(1000, 9999);
+    uniform_int_distribution<int> dist_g(1, 0); // инициализация-заглушка
     
     do {
-        p = rand() % 9000 + 1000;
+        p = dist_p(gen);
     } while (!isPrime(p));
+    
+    dist_g = uniform_int_distribution<int>(1, p-1);
     do {
-        g = rand() % (p - 1) + 1;
+        g = dist_g(gen);
     } while (!is_primitive_root(g, p));
     
-    x = rand() % (p - 1) + 1;
+    uniform_int_distribution<int> dist_x(1, p-1);
+    x = dist_x(gen);
     y = aXmodP(g, x, p);
 
     if (isShowingKeys)
@@ -140,12 +146,12 @@ tuple<int, int, int, int> KeysGenerator(bool isShowingKeys) {
     return make_tuple(p, g, x, y);
 }
 
-void ElGamalCrypt(int& p, int& g, int& y, const string& plaintext, ofstream& out) {
+void ElGamalCrypt(int& p, int& g, int& y, const string& plaintext, ofstream& out, mt19937& gen) {
     vector<int> kValues(plaintext.size());
-
-    for (size_t i = 0; i < plaintext.size(); ++i) 
-    {
-        kValues[i] = rand() % (p - 2) + 1;
+    uniform_int_distribution<int> dist_k(1, p-2);
+    
+    for (size_t i = 0; i < plaintext.size(); ++i) {
+        kValues[i] = dist_k(gen);
     }
 
     for (size_t i = 0; i < plaintext.size(); ++i) 
@@ -199,9 +205,10 @@ extern "C" char* ElGamal_PasswordDecrypt(int p, int x, const char* ciphertext) {
 extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
 
     try {
-        srand(time(NULL));
+        random_device rd;
+        mt19937 gen(rd());
 
-        auto generated_keys = KeysGenerator(isShowingKeys);
+        auto generated_keys = KeysGenerator(isShowingKeys, gen);
         int p = get<0>(generated_keys);
         int g = get<1>(generated_keys);
         int x = get<2>(generated_keys);
@@ -237,7 +244,7 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
 
         }
         cout << WARNING << "\nФайл шируется, подождите..." << RESET << endl;
-        ElGamalCrypt(p, g, y, plaintext, encryptedOutFile);
+        ElGamalCrypt(p, g, y, plaintext, encryptedOutFile, gen);
         encryptedOutFile.close();
         cout << SUCCESS << "Файл зашифрован!" << RESET << endl;
 
