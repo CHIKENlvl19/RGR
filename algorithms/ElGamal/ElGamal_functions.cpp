@@ -11,10 +11,12 @@
 #include <filesystem>
 #include <random>
 #include <gmpxx.h>
+#include <chrono>
 #include "../include/ElGamal/ElGamal_functions.h"
 
 using namespace std;
 using namespace Colors;
+using namespace std::chrono;
 
 bool isPrime(const mpz_class& p) {
     return mpz_probab_prime_p(p.get_mpz_t(), 25) > 0;
@@ -253,10 +255,19 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
             throw runtime_error ("Ошибка открытия выходного файла для шифрования.");
 
         }
-        cout << WARNING << "\nФайл шируется, подождите..." << RESET << endl;
+        cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
+        auto startEncrypt = high_resolution_clock::now();
         ElGamalCrypt(p, g, y, plaintext, encryptedOutFile, state);
+        auto endEncrypt = high_resolution_clock::now();
         encryptedOutFile.close();
         cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
+
+        auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
+        auto encryptMinutes = duration_cast<minutes>(encryptDuration);
+        auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
+        auto encryptMilliseconds = duration_cast<milliseconds>(encryptDuration - encryptMinutes - encryptSeconds);
+
+        cout << "Время шифрования: " << encryptMinutes.count() << " мин " << encryptSeconds.count() << " сек " << encryptMilliseconds.count() << " мс" << endl;
 
         ifstream encryptedInFile("encrypted_" + baseName, ios::binary);
         if (!encryptedInFile) 
@@ -271,14 +282,23 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         }
 
 
-        cout << WARNING << "\nФайл дешируется, подождите..." << RESET << endl;
+        cout << WARNING << "\nФайл дефшируется, подождите..." << RESET << endl;
+        auto startDecrypt = high_resolution_clock::now();
         string decryptedText;
         ElGamalDecrypt(p, x, encryptedInFile, decryptedText);
+        auto endDecrypt = high_resolution_clock::now();
         encryptedInFile.close();
 
         decryptedOutFile.write(decryptedText.data(), decryptedText.size());
         decryptedOutFile.close();
         cout << SUCCESS << "Файл успешно расшифрован!" << RESET << endl;
+
+        auto decryptDuration = duration_cast<milliseconds>(endDecrypt - startDecrypt);
+        auto decryptMinutes = duration_cast<minutes>(decryptDuration);
+        auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
+        auto decryptMilliseconds = duration_cast<milliseconds>(decryptDuration - decryptMinutes - decryptSeconds);
+
+        cout << "Время дешифрования: " << decryptMinutes.count() << " мин " << decryptSeconds.count() << " сек " << decryptMilliseconds.count() << " мс" << endl;
 
         gmp_randclear(state); // очистка состояния генератора
     } catch (const exception& e) {
