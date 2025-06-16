@@ -2,11 +2,13 @@
 #include <fstream>
 #include <random>
 #include <filesystem>
+#include <chrono>
 #include "../include/Viginer/Viginer_functions.h"
 
 using namespace std;
 using namespace Colors;
 namespace fs = std::filesystem;
+using namespace std::chrono;
 
 string randomKeyGenerator(const size_t& keyLength, bool isShowingKeys) {
     string key;
@@ -95,7 +97,10 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         string baseName = inputPath.filename().string();
 
         cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
+        auto startEncrypt = high_resolution_clock::now();
         string cipherText = ViginerEncrypt(plainText, key);
+        auto endEncrypt = high_resolution_clock::now();
+
         ofstream encryptedOutFile("encrypted_" + baseName, ios::binary);
         if (!encryptedOutFile) 
         {
@@ -105,8 +110,18 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         encryptedOutFile.close();
         cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
 
+        auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
+        auto encryptMinutes = duration_cast<minutes>(encryptDuration);
+        auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
+        auto encryptMilliseconds = duration_cast<milliseconds>(encryptDuration - encryptMinutes - encryptSeconds);
+
+        cout << "Время шифрования: " << encryptMinutes.count() << " мин " << encryptSeconds.count() << " сек " << encryptMilliseconds.count() << " мс" << endl;
+
         cout << WARNING << "\nФайл дешифруется, подождите..." << RESET << endl;
+        auto startDecrypt = high_resolution_clock::now();
         string decryptedText = ViginerDecrypt(cipherText, key);
+        auto endDecrypt = high_resolution_clock::now();
+
         ofstream decryptedOutFile(baseName, ios::binary);
         if (!decryptedOutFile) 
         {
@@ -115,6 +130,13 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         decryptedOutFile.write(decryptedText.data(), decryptedText.size());
         decryptedOutFile.close();
         cout << SUCCESS << "Файл успешно дешифрован!" << RESET << endl;
+
+        auto decryptDuration = duration_cast<milliseconds>(endDecrypt - startDecrypt);
+        auto decryptMinutes = duration_cast<minutes>(decryptDuration);
+        auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
+        auto decryptMilliseconds = duration_cast<milliseconds>(decryptDuration - decryptMinutes - decryptSeconds);
+
+        cout << "Время дешифрования: " << decryptMinutes.count() << " мин " << decryptSeconds.count() << " сек " << decryptMilliseconds.count() << " мс" << endl;
 
     } catch (const exception& e) {
         cerr << ERROR<< "Ошибка: " << RESET << e.what() << endl;

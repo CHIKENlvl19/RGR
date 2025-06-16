@@ -3,10 +3,12 @@
 #include <string>
 #include <random>
 #include <filesystem>
+#include <chrono>
 #include "../include/Vernam/Vernam_functions.h"
 
 using namespace std;
 using namespace Colors;
+using namespace std::chrono;
 
 string randomKeyGenerator(size_t length) {
     string key;
@@ -94,17 +96,35 @@ extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
             throw runtime_error("Ошибка открытия выходного файла для шифрования.");
         }
         cout << "\nФайл шифруется, подождите...\n";
+        auto startEncrypt = high_resolution_clock::now();
         string cipherText = vernamEncrypt(plaintext, key, encryptedOutFile, isShowingKeys);
+        auto endEncrypt = high_resolution_clock::now();
         cout << "\nФайл успешно зашифрован!\n";
-        
+
+        auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
+        auto encryptMinutes = duration_cast<minutes>(encryptDuration);
+        auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
+        auto encryptMilliseconds = duration_cast<milliseconds>(encryptDuration - encryptMinutes - encryptSeconds);
+
+        cout << "Время шифрования: " << encryptMinutes.count() << " мин " << encryptSeconds.count() << " сек " << encryptMilliseconds.count() << " мс" << endl;
+
         ofstream decryptedOutFile("decrypted_" + baseName, ios::binary);
         if (!decryptedOutFile) {
             throw runtime_error("Ошибка открытия выходного файла для расшифрования.");
         }
         cout << "\nФайл дешифруется, подождите...\n";
+        auto startDecrypt = high_resolution_clock::now();
         vernamDecrypt(cipherText, key, decryptedOutFile);
+        auto endDecrypt = high_resolution_clock::now();
         cout << "\nФайл успешно дешифрован!\n";
         decryptedOutFile.close();
+
+        auto decryptDuration = duration_cast<milliseconds>(endDecrypt - startDecrypt);
+        auto decryptMinutes = duration_cast<minutes>(decryptDuration);
+        auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
+        auto decryptMilliseconds = duration_cast<milliseconds>(decryptDuration - decryptMinutes - decryptSeconds);
+
+        cout << "Время дешифрования: " << decryptMinutes.count() << " мин " << decryptSeconds.count() << " сек " << decryptMilliseconds.count() << " мс" << endl;
 
     }
     catch (const exception& e)
