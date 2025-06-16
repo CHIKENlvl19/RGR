@@ -9,6 +9,7 @@
 using namespace std;
 using namespace Colors;
 using namespace std::chrono;
+namespace fs = filesystem;
 
 string randomKeyGenerator(size_t length) {
     string key;
@@ -62,6 +63,30 @@ void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out) 
     }
 
     out << plaintext;
+}
+
+string humanReadableSize(uintmax_t bytes) {
+    const char* units[] = { "B", "KB", "MB", "GB", "TB" };
+    int unit = 0;
+    double size = static_cast<double>(bytes);
+
+    while (size >= 1024 && unit < 4)
+    {
+        size /= 1024;
+        ++unit;
+    }
+
+    string result;
+    if (unit == 0 || size >= 100)
+    {
+        result = to_string(static_cast<int>(size));
+    } else {
+        ostringstream oss;
+        oss << fixed << setprecision(1) << size;
+        result = oss.str();
+    }
+    
+    return result + " " + units[unit];
 }
 
 extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
@@ -125,6 +150,12 @@ extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
         auto decryptMilliseconds = duration_cast<milliseconds>(decryptDuration - decryptMinutes - decryptSeconds);
 
         cout << "Время дешифрования: " << decryptMinutes.count() << " мин " << decryptSeconds.count() << " сек " << decryptMilliseconds.count() << " мс" << endl;
+
+        uintmax_t originalSize = fs::file_size(inputPath);
+        uintmax_t encryptedSize = fs::file_size("encrypted_" + baseName);
+
+        cout << IMPORTANT << "\nРазмер файла до шифрования: " << humanReadableSize(originalSize) << RESET << endl;
+        cout << IMPORTANT << "Размер зашифрованного файла: " << humanReadableSize(encryptedSize) << RESET << endl;
 
     }
     catch (const exception& e)
