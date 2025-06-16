@@ -18,5 +18,4 @@ void ElGamal_run(const char* fileName, int isShowingKeys);
 }
 #endif
 
-// Объявление только для функции, используемой в других местах
 tuple<mpz_class, mpz_class, mpz_class, mpz_class> KeysGenerator(bool isShowingKeys, gmp_randstate_t state);

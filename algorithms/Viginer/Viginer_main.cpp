@@ -5,6 +5,7 @@
 #include "../include/Viginer/Viginer_functions.h"
 
 using namespace std;
+using namespace Colors;
 
 string randomKeyGenerator(const size_t& keyLength, bool isShowingKeys) {
     string key;
@@ -67,7 +68,7 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         ifstream inFile(fileName, ios::binary);
         if (!inFile) 
         {
-            throw runtime_error("Файл не найден");
+            throw runtime_error("Ошибка открытия входного файла");
         }
 
         string plainText((istreambuf_iterator<char>(inFile)), istreambuf_iterator<char>());
@@ -92,7 +93,7 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         filesystem::path inputPath(fileName);
         string baseName = inputPath.filename().string();
 
-        cout << "\nФайл шифруется, подождите...\n";
+        cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
         string cipherText = ViginerEncrypt(plainText, key);
         ofstream encryptedOutFile("encrypted_" + baseName, ios::binary);
         if (!encryptedOutFile) 
@@ -101,20 +102,20 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         }
         encryptedOutFile.write(cipherText.data(), cipherText.size());
         encryptedOutFile.close();
-        cout << "\nФайл успешно зашифрован!\n" << endl;
+        cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
 
-        cout << "\nФайл дешифруется, подождите...\n";
+        cout << WARNING << "\nФайл дешифруется, подождите..." << RESET << endl;
         string decryptedText = ViginerDecrypt(cipherText, key);
-        ofstream decryptedOutFile("decrypted_" + baseName, ios::binary);
+        ofstream decryptedOutFile(baseName, ios::binary);
         if (!decryptedOutFile) 
         {
             throw runtime_error ("Ошибка открытия выходного файла для расшифрования.");
         }
         decryptedOutFile.write(decryptedText.data(), decryptedText.size());
         decryptedOutFile.close();
-        cout << "\nФайл успешно дешифрован!\n" << endl;
+        cout << SUCCESS << "Файл успешно дешифрован!" << RESET << endl;
 
     } catch (const exception& e) {
-        cerr << "Ошибка: " << e.what() << endl;
+        cerr << ERROR<< "Ошибка: " << RESET << e.what() << endl;
     }
 }
