@@ -22,7 +22,8 @@ void showHelp() {
          << "  -h, --help\t\tПоказать эту справку\n"
          << "  -v, --version\t\tПоказать версию программы\n"
          << "  --uninstall\t\tУдалить программу\n\n"
-         << "Для работы с программой запустите без аргументов.\n";
+         << "Для работы с программой запустите без аргументов.\n"
+         << WARNING << "\nВАЖНО! Используйте программу с осторожностью, не применяйте алгоритмы шифрования для системных файлов." << RESET;
 }
 
 void showVersion() {
@@ -106,6 +107,7 @@ void oneMoreFile() {
     try {
         while (true)
         {
+            cout << "Выбор: ";
             string choice;
             cin >> choice;
 
@@ -137,6 +139,7 @@ string FileMethods() {
     string answer;
     while (true)
     {
+        cout << "Выбор: ";
         if(!getline(cin, answer))
         {
             cin.clear();
@@ -184,6 +187,7 @@ string PreparedFiles() {
     int choice;
     while (true)
     {
+        cout << "Выбор: ";
         cin >> choice;
         switch (choice)
         {
@@ -257,6 +261,7 @@ cipherAlgorithm cipherChoice() {
     int choice;
     while (true)
     {
+        cout << "Выбор: ";
         cin >> choice;
         if (choice == 1)
         {
@@ -278,10 +283,11 @@ cipherAlgorithm cipherChoice() {
 }
 
 bool isPrintingKeys() {
-    cout << "\nЖелаете видеть ключи, используемые для шифрования / дешифровки?\n";
+    cout << "\nЖелаете видеть ключи, используемые для шифрования / дешифровки? (да/нет): \n";
     try {
         while (true)
         {
+            cout << "Выбор: ";
             string choice;
             cin >> choice;
 

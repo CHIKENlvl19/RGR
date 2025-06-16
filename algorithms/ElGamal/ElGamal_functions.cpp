@@ -228,7 +228,7 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         ifstream inFile(fileName, ios::binary);
         if (!inFile) 
         {
-            throw runtime_error ("Ошибка открытия входного файла: ");
+            throw runtime_error ("Ошибка открытия входного файла");
         }
 
         inFile.seekg(0, ios::end);
@@ -256,7 +256,7 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         cout << WARNING << "\nФайл шируется, подождите..." << RESET << endl;
         ElGamalCrypt(p, g, y, plaintext, encryptedOutFile, state);
         encryptedOutFile.close();
-        cout << SUCCESS << "Файл зашифрован!" << RESET << endl;
+        cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
 
         ifstream encryptedInFile("encrypted_" + baseName, ios::binary);
         if (!encryptedInFile) 
@@ -264,7 +264,7 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
             throw runtime_error ("Ошибка открытия зашифрованного файла.");
         }
 
-        ofstream decryptedOutFile("decrypted_" + baseName, ios::binary);
+        ofstream decryptedOutFile(baseName, ios::binary);
         if (!decryptedOutFile) 
         {
             throw runtime_error ("Ошибка открытия выходного файла для расшифрования.");
@@ -278,7 +278,7 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
 
         decryptedOutFile.write(decryptedText.data(), decryptedText.size());
         decryptedOutFile.close();
-        cout << SUCCESS << "Файл расшифрован!" << RESET << endl;
+        cout << SUCCESS << "Файл успешно расшифрован!" << RESET << endl;
 
         gmp_randclear(state); // очистка состояния генератора
     } catch (const exception& e) {

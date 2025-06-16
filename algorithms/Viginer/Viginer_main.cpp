@@ -6,6 +6,7 @@
 
 using namespace std;
 using namespace Colors;
+namespace fs = std::filesystem;
 
 string randomKeyGenerator(const size_t& keyLength, bool isShowingKeys) {
     string key;
@@ -90,7 +91,7 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
             cin >> key;
         }
 
-        filesystem::path inputPath(fileName);
+        fs::path inputPath(fileName);
         string baseName = inputPath.filename().string();
 
         cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
