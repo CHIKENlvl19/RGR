@@ -169,7 +169,6 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         
         cout << SUCCESS << "Файл успешно дешифрован!" << RESET << endl;
 
-        // Расчет времени
         auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
         auto encryptMinutes = duration_cast<minutes>(encryptDuration);
         auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
@@ -180,7 +179,6 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
         auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
         auto decryptMilliseconds = decryptDuration - decryptMinutes - decryptSeconds;
 
-        // Вывод информации
         cout << dec << "Время шифрования: " << encryptMinutes.count() << " мин "
              << encryptSeconds.count() << " сек "
              << encryptMilliseconds.count() << " мс" << endl;

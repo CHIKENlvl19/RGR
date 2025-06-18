@@ -25,7 +25,7 @@ string randomKeyGenerator(size_t length, bool isShowingKeys) {
 
     if (isShowingKeys && length > 0) 
     {
-        // Сохраняем оригинальные настройки потока
+        // оригинальные настройки потока
         ios_base::fmtflags original_flags = cout.flags();
         char original_fill = cout.fill();
         
@@ -34,9 +34,9 @@ string randomKeyGenerator(size_t length, bool isShowingKeys) {
         {
             cout << hex << setw(2) << setfill('0') << (int)(unsigned char)key[i];
         }
-        cout << dec << endl; // Важно: сбрасываем в десятичный формат
+        cout << dec << endl; // важно
         
-        // Восстанавливаем настройки потока
+        // восстановление настройки потока
         cout.flags(original_flags);
         cout.fill(original_fill);
     }
@@ -161,7 +161,6 @@ extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
         auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
         auto decryptMilliseconds = decryptDuration - decryptMinutes - decryptSeconds;
 
-        // Вывод информации (явно указываем десятичный формат)
         cout << dec << "Время шифрования: " << encryptMinutes.count() << " мин "
              << encryptSeconds.count() << " сек "
              << encryptMilliseconds.count() << " мс" << endl;

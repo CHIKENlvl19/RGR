@@ -41,7 +41,7 @@ mpz_class MulMod(const mpz_class& a, const mpz_class& b, const mpz_class& n) {
     mpz_class result;
     mpz_mul(result.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
     mpz_mod(result.get_mpz_t(), result.get_mpz_t(), n.get_mpz_t());
-    
+
     return result;
 }
 
@@ -289,7 +289,6 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         mpz_class seed_mpz = seed;
         gmp_randseed(state, seed_mpz.get_mpz_t());
 
-        // Генерация ключей
         auto generated_keys = KeysGenerator(isShowingKeys, state);
         mpz_class p = get<0>(generated_keys);
         mpz_class g = get<1>(generated_keys);
@@ -301,7 +300,6 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         string encryptedFileName = "encrypted_" + baseName;
         string decryptedFileName = "decrypted_" + baseName;
 
-        // Шифрование
         cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
         ifstream inFile(fileName, ios::binary);
         if (!inFile) {
@@ -321,7 +319,6 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         encryptedOutFile.close();
         cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
 
-        // Дешифрование
         cout << WARNING << "\nФайл дешифруется, подождите..." << RESET << endl;
         ifstream encryptedInFile(encryptedFileName, ios::binary);
         if (!encryptedInFile) {
@@ -341,7 +338,6 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         decryptedOutFile.close();
         cout << SUCCESS << "Файл успешно дешифрован!" << RESET << endl;
 
-        // Расчет времени
         auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
         auto encryptMinutes = duration_cast<minutes>(encryptDuration);
         auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
@@ -352,7 +348,6 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
         auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
         auto decryptMilliseconds = decryptDuration - decryptMinutes - decryptSeconds;
 
-        // Вывод информации
         cout << dec << "Время шифрования: " << encryptMinutes.count() << " мин "
              << encryptSeconds.count() << " сек "
              << encryptMilliseconds.count() << " мс" << endl;
@@ -361,7 +356,6 @@ extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
              << decryptSeconds.count() << " сек "
              << decryptMilliseconds.count() << " мс" << endl;
 
-        // Размеры файлов
         uintmax_t originalSize = fs::file_size(fileName);
         uintmax_t encryptedSize = fs::file_size(encryptedFileName);
 
