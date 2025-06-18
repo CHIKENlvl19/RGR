@@ -1,13 +1,11 @@
 #!/bin/bash
 set -e
 
-# Проверка прав
 if [ "$(id -u)" != "0" ]; then
   echo "Запустите установщик с правами root: sudo $0" >&2
   exit 1
 fi
 
-# Определение дистрибутива
 #if [ -f /etc/os-release ]; then
 #  . /etc/os-release
 #  OS=$ID
@@ -18,7 +16,6 @@ fi
 #  OS=$(uname -s)
 #fi
 
-# Установка зависимостей
 #echo "Установка системных зависимостей..."
 #case $OS in
 #  ubuntu|debian|pop|linuxmint|kali)
@@ -42,11 +39,10 @@ fi
 #    ;;
 #esac
 
-# Установка файлов
 echo "Установка программы..."
 install -m 755 bin/cryptographer /usr/local/bin/cryptographer.bin
 
-# Создаем обертку для запуска
+# обертка для запуска
 echo "Создание обертки для запуска..."
 cat > /usr/local/bin/cryptographer <<EOL
 #!/bin/bash
@@ -58,7 +54,7 @@ chmod +x /usr/local/bin/cryptographer
 echo "Установка библиотек..."
 install -m 644 libs/*.so /usr/local/lib/
 
-# Используем patchelf если доступен
+# patchelf если доступен
 if command -v patchelf &> /dev/null; then
   echo "Исправление путей к библиотекам с помощью patchelf..."
   patchelf --set-rpath /usr/local/lib /usr/local/bin/cryptographer.bin
@@ -66,7 +62,7 @@ else
   echo "Patchelf не установлен, используем обертку"
 fi
 
-# Обновление кэша библиотек
+# обновление кэша библиотек
 ldconfig
 
 echo "Проверка установки библиотек..."
@@ -93,7 +89,6 @@ mkdir -p /usr/local/share/cryptographer/scripts
 cp scripts/*.sh /usr/local/share/cryptographer/scripts/
 chmod +x /usr/local/share/cryptographer/scripts/*.sh
 
-# В разделе "Установка скриптов управления"
 echo "Создание команды для удаления..."
 cat > /usr/local/bin/cryptographer-uninstall <<EOL
 #!/bin/bash
@@ -101,7 +96,6 @@ sudo /usr/local/share/cryptographer/scripts/uninstall.sh
 EOL
 chmod +x /usr/local/bin/cryptographer-uninstall
 
-# Создание конфигурации
 if [ ! -f /etc/cryptographer.conf ]; then
   echo "Создание конфигурационного файла..."
   cat > /etc/cryptographer.conf <<EOL
@@ -113,7 +107,6 @@ EOL
   chmod 644 /etc/cryptographer.conf
 fi
 
-# Проверка установки
 echo "Проверка установки..."
 if /usr/local/bin/cryptographer --version; then
   echo "Установка завершена успешно!"
@@ -121,7 +114,6 @@ if /usr/local/bin/cryptographer --version; then
 else
   echo "Ошибка при проверке установки!" >&2
   
-  # Расширенная диагностика
   echo "=== Диагностическая информация ==="
   echo "Библиотеки в /usr/local/lib:"
   ls -l /usr/local/lib/libelgamal* /usr/local/lib/libvernam* /usr/local/lib/libviginer*

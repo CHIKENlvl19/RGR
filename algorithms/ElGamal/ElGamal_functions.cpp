@@ -33,6 +33,7 @@ mpz_class gcd(const mpz_class& a, const mpz_class& b) {
 mpz_class aXmodP(const mpz_class& a, const mpz_class& x, const mpz_class& p) {
     mpz_class result;
     mpz_powm(result.get_mpz_t(), a.get_mpz_t(), x.get_mpz_t(), p.get_mpz_t());
+
     return result;
 }
 
@@ -40,21 +41,25 @@ mpz_class MulMod(const mpz_class& a, const mpz_class& b, const mpz_class& n) {
     mpz_class result;
     mpz_mul(result.get_mpz_t(), a.get_mpz_t(), b.get_mpz_t());
     mpz_mod(result.get_mpz_t(), result.get_mpz_t(), n.get_mpz_t());
+    
     return result;
 }
 
 vector<mpz_class> prime_factors(const mpz_class& n) {
     vector<mpz_class> factors;
     
-    if (n <= 1) {
+    if (n <= 1) 
+    {
         return factors;
     }
 
     mpz_class num = n; //с копией
 
-    if (num % 2 == 0) {
+    if (num % 2 == 0) 
+    {
         factors.push_back(2);
-        while (num % 2 == 0) {
+        while (num % 2 == 0) 
+        {
             num /= 2;
         }
     }
@@ -64,10 +69,12 @@ vector<mpz_class> prime_factors(const mpz_class& n) {
     mpz_class max_factor;
     mpz_sqrt(max_factor.get_mpz_t(), num.get_mpz_t()); // max_factor = floor(sqrt(num))
 
-    while (i <= max_factor && num > 1) {
+    while (i <= max_factor && num > 1) 
+    {
         if (num % i == 0) {
             factors.push_back(i);
-            while (num % i == 0) {
+            while (num % i == 0) 
+            {
                 num /= i;
             }
             // max_factor после деления
@@ -77,7 +84,8 @@ vector<mpz_class> prime_factors(const mpz_class& n) {
     }
 
     // если остался множитель > 1 (простое число)
-    if (num > 1) {
+    if (num > 1) 
+    {
         factors.push_back(num);
     }
 
@@ -87,13 +95,16 @@ vector<mpz_class> prime_factors(const mpz_class& n) {
 mpz_class find_primitive_root(const mpz_class& p, const mpz_class& pm1, const vector<mpz_class>& factors) {
     for (mpz_class g = 2; g < p; g++) {
         bool is_primitive = true;
-        for (const auto& q : factors) {
-            if (aXmodP(g, pm1 / q, p) == 1) {
+        for (const auto& q : factors) 
+        {
+            if (aXmodP(g, pm1 / q, p) == 1) 
+            {
                 is_primitive = false;
                 break;
             }
         }
-        if (is_primitive) {
+        if (is_primitive) 
+        {
             return g;
         }
     }
@@ -106,7 +117,8 @@ mpz_class generate_safe_prime(gmp_randstate_t state, unsigned long bits) {
         mpz_urandomb(q.get_mpz_t(), state, bits - 1);
         mpz_nextprime(q.get_mpz_t(), q.get_mpz_t());
         p = 2 * q + 1;
-        if (mpz_probab_prime_p(p.get_mpz_t(), 25) > 0) {
+        if (mpz_probab_prime_p(p.get_mpz_t(), 25) > 0) 
+        {
             return p;
         }
     } while (true);
@@ -120,7 +132,6 @@ tuple<mpz_class, mpz_class, mpz_class, mpz_class> KeysGenerator(bool isShowingKe
     vector<mpz_class> factors = {mpz_class(2), pm1 / 2}; // p-1 = 2*q
     mpz_class g = find_primitive_root(p, pm1, factors); 
 
-    // секретный ключ
     mpz_urandomm(x.get_mpz_t(), state, pm1.get_mpz_t());
     y = aXmodP(g, x, p);
     
@@ -132,38 +143,72 @@ tuple<mpz_class, mpz_class, mpz_class, mpz_class> KeysGenerator(bool isShowingKe
     return make_tuple(p, g, x, y);
 }
 
-void ElGamalCrypt(mpz_class& p, mpz_class& g, mpz_class& y, const string& plaintext, ofstream& out, gmp_randstate_t state) {
-    for (size_t i = 0; i < plaintext.size(); ++i) {
-        mpz_class m = static_cast<unsigned char>(plaintext[i]);
-        mpz_class k;
+void ElGamalEncrypt(istream& in, ostream& out, 
+                         const mpz_class& p, const mpz_class& g, const mpz_class& y,
+                         gmp_randstate_t state) {
+    const size_t BUFFER_SIZE = 4096;
+    vector<char> buffer(BUFFER_SIZE);
+    mpz_class k, a, b, m;
+    
+    while (in) {
+        in.read(buffer.data(), BUFFER_SIZE);
+        size_t bytesRead = in.gcount();
         
-        do {
-            mpz_urandomm(k.get_mpz_t(), state, p.get_mpz_t());
-        } while (k <= 1 || mpz_cmp(k.get_mpz_t(), p.get_mpz_t()) >= 0);
+        for (size_t i = 0; i < bytesRead; ++i) 
+        {
+            do {
+                mpz_urandomm(k.get_mpz_t(), state, p.get_mpz_t());
+            } while (k <= 1 || mpz_cmp(k.get_mpz_t(), p.get_mpz_t()) >= 0);
         
-        mpz_class a = aXmodP(g, k, p);
-        mpz_class b = MulMod(aXmodP(y, k, p), m, p);
-        
-        string a_str = a.get_str();
-        string b_str = b.get_str();
-        
-        out << a_str << " " << b_str << " ";
+            m = static_cast<unsigned char>(buffer[i]);
+            a = aXmodP(g, k, p);
+            b = MulMod(aXmodP(y, k, p), m, p);
+            
+            size_t a_size = (mpz_sizeinbase(a.get_mpz_t(), 2) + 7) / 8;
+            size_t b_size = (mpz_sizeinbase(b.get_mpz_t(), 2) + 7) / 8;
+            
+            out.write(reinterpret_cast<const char*>(&a_size), sizeof(size_t));
+            out.write(reinterpret_cast<const char*>(&b_size), sizeof(size_t));
+            
+            // Записываем сами числа
+            vector<char> a_buf(a_size);
+            vector<char> b_buf(b_size);
+            mpz_export(a_buf.data(), nullptr, 1, 1, 0, 0, a.get_mpz_t());
+            mpz_export(b_buf.data(), nullptr, 1, 1, 0, 0, b.get_mpz_t());
+            
+            out.write(a_buf.data(), a_size);
+            out.write(b_buf.data(), b_size);
+        }
     }
 }
 
-void ElGamalDecrypt(const mpz_class& p, const mpz_class& x, ifstream& in, string& decryptedText) {
-    string a_str, b_str;
-    while (in >> a_str >> b_str) {
+void ElGamalDecrypt(istream& in, ostream& out, 
+                         const mpz_class& p, const mpz_class& x) {
+    size_t a_size, b_size;
+    
+    while (in.read(reinterpret_cast<char*>(&a_size), sizeof(size_t))) {
+        if (!in.read(reinterpret_cast<char*>(&b_size), sizeof(size_t))) 
+            break;
+        
+        vector<char> a_buf(a_size);
+        vector<char> b_buf(b_size);
+        
+        if (!in.read(a_buf.data(), a_size) || !in.read(b_buf.data(), b_size))
+            break;
+        
         mpz_class a, b;
-        a = a_str;
-        b = b_str;
-
-        mpz_class s = aXmodP(a, p - 1 - x, p); // s = a^(p-1-x) mod p
-        mpz_class m = MulMod(b, s, p); // m = b * s mod p
-
-        decryptedText += static_cast<char>(m.get_ui()); // восстановление байта
+        mpz_import(a.get_mpz_t(), a_size, 1, 1, 0, 0, a_buf.data());
+        mpz_import(b.get_mpz_t(), b_size, 1, 1, 0, 0, b_buf.data());
+        
+        // Дешифрование
+        mpz_class s = aXmodP(a, p - 1 - x, p);
+        mpz_class m = MulMod(b, s, p);
+        
+        char decryptedByte = static_cast<char>(m.get_ui());
+        out.write(&decryptedByte, 1);
     }
 }
+
 
 int simpleAxModP(int a, int x, int p) {
     int result = 1;
@@ -236,102 +281,96 @@ string humanReadableSize(uintmax_t bytes) {
 }
 
 extern "C" void ElGamal_run(const char* fileName, int isShowingKeys) {
-
     try {
         gmp_randstate_t state;
         gmp_randinit_default(state);
-
         random_device rd;
         unsigned long seed = rd();
         mpz_class seed_mpz = seed;
         gmp_randseed(state, seed_mpz.get_mpz_t());
 
+        // Генерация ключей
         auto generated_keys = KeysGenerator(isShowingKeys, state);
         mpz_class p = get<0>(generated_keys);
         mpz_class g = get<1>(generated_keys);
         mpz_class x = get<2>(generated_keys);
         mpz_class y = get<3>(generated_keys);
 
-        ifstream inFile(fileName, ios::binary);
-        if (!inFile) 
-        {
-            throw runtime_error ("Ошибка открытия входного файла");
-        }
-
-        inFile.seekg(0, ios::end);
-        size_t size = inFile.tellg();
-        inFile.seekg(0, ios::beg);
-
-        vector<char> buffer(size);
-        if (size > 0) {
-            inFile.read(buffer.data(), size);
-        } else {
-            cerr << "Входной файл пуст: " << fileName << endl;
-        }
-        inFile.close();
-        string plaintext(buffer.data(), size);
-
-        filesystem::path inputPath(fileName);
+        fs::path inputPath(fileName);
         string baseName = inputPath.filename().string();
+        string encryptedFileName = "encrypted_" + baseName;
+        string decryptedFileName = "decrypted_" + baseName;
 
-        ofstream encryptedOutFile("encrypted_" + baseName, ios::binary);
-        if (!encryptedOutFile) 
-        {
-            throw runtime_error ("Ошибка открытия выходного файла для шифрования.");
-
-        }
+        // Шифрование
         cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
+        ifstream inFile(fileName, ios::binary);
+        if (!inFile) {
+            throw runtime_error("Ошибка открытия входного файла");
+        }
+        
+        ofstream encryptedOutFile(encryptedFileName, ios::binary);
+        if (!encryptedOutFile) {
+            throw runtime_error("Ошибка открытия выходного файла для шифрования.");
+        }
+        
         auto startEncrypt = high_resolution_clock::now();
-        ElGamalCrypt(p, g, y, plaintext, encryptedOutFile, state);
+        ElGamalEncrypt(inFile, encryptedOutFile, p, g, y, state);
         auto endEncrypt = high_resolution_clock::now();
+        
+        inFile.close();
         encryptedOutFile.close();
         cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
 
+        // Дешифрование
+        cout << WARNING << "\nФайл дешифруется, подождите..." << RESET << endl;
+        ifstream encryptedInFile(encryptedFileName, ios::binary);
+        if (!encryptedInFile) {
+            throw runtime_error("Ошибка открытия зашифрованного файла");
+        }
+        
+        ofstream decryptedOutFile(decryptedFileName, ios::binary);
+        if (!decryptedOutFile) {
+            throw runtime_error("Ошибка открытия выходного файла для расшифрования.");
+        }
+        
+        auto startDecrypt = high_resolution_clock::now();
+        ElGamalDecrypt(encryptedInFile, decryptedOutFile, p, x);
+        auto endDecrypt = high_resolution_clock::now();
+        
+        encryptedInFile.close();
+        decryptedOutFile.close();
+        cout << SUCCESS << "Файл успешно дешифрован!" << RESET << endl;
+
+        // Расчет времени
         auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
         auto encryptMinutes = duration_cast<minutes>(encryptDuration);
         auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
-        auto encryptMilliseconds = duration_cast<milliseconds>(encryptDuration - encryptMinutes - encryptSeconds);
-
-        cout << "Время шифрования: " << encryptMinutes.count() << " мин " << encryptSeconds.count() << " сек " << encryptMilliseconds.count() << " мс" << endl;
-
-        ifstream encryptedInFile("encrypted_" + baseName, ios::binary);
-        if (!encryptedInFile) 
-        {
-            throw runtime_error ("Ошибка открытия зашифрованного файла.");
-        }
-
-        ofstream decryptedOutFile(baseName, ios::binary);
-        if (!decryptedOutFile) 
-        {
-            throw runtime_error ("Ошибка открытия выходного файла для расшифрования.");
-        }
-
-
-        cout << WARNING << "\nФайл дефшируется, подождите..." << RESET << endl;
-        auto startDecrypt = high_resolution_clock::now();
-        string decryptedText;
-        ElGamalDecrypt(p, x, encryptedInFile, decryptedText);
-        auto endDecrypt = high_resolution_clock::now();
-        encryptedInFile.close();
-
-        decryptedOutFile.write(decryptedText.data(), decryptedText.size());
-        decryptedOutFile.close();
-        cout << SUCCESS << "Файл успешно расшифрован!" << RESET << endl;
+        auto encryptMilliseconds = encryptDuration - encryptMinutes - encryptSeconds;
 
         auto decryptDuration = duration_cast<milliseconds>(endDecrypt - startDecrypt);
         auto decryptMinutes = duration_cast<minutes>(decryptDuration);
         auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
-        auto decryptMilliseconds = duration_cast<milliseconds>(decryptDuration - decryptMinutes - decryptSeconds);
+        auto decryptMilliseconds = decryptDuration - decryptMinutes - decryptSeconds;
 
-        cout << "Время дешифрования: " << decryptMinutes.count() << " мин " << decryptSeconds.count() << " сек " << decryptMilliseconds.count() << " мс" << endl;
+        // Вывод информации
+        cout << dec << "Время шифрования: " << encryptMinutes.count() << " мин "
+             << encryptSeconds.count() << " сек "
+             << encryptMilliseconds.count() << " мс" << endl;
 
-        uintmax_t originalSize = fs::file_size(inputPath);
-        uintmax_t encryptedSize = fs::file_size("encrypted_" + baseName);
+        cout << dec << "Время дешифрования: " << decryptMinutes.count() << " мин "
+             << decryptSeconds.count() << " сек "
+             << decryptMilliseconds.count() << " мс" << endl;
 
-        cout << IMPORTANT << "\nРазмер файла до шифрования: " << humanReadableSize(originalSize) << RESET << endl;
-        cout << IMPORTANT << "Размер зашифрованного файла: " << humanReadableSize(encryptedSize) << RESET << endl;
+        // Размеры файлов
+        uintmax_t originalSize = fs::file_size(fileName);
+        uintmax_t encryptedSize = fs::file_size(encryptedFileName);
 
-        gmp_randclear(state); // очистка состояния генератора
+        cout << IMPORTANT << "\nРазмер файла до шифрования: " 
+             << humanReadableSize(originalSize) << RESET << endl;
+        cout << IMPORTANT << "Размер зашифрованного файла: " 
+             << humanReadableSize(encryptedSize) << RESET << endl;
+
+        gmp_randclear(state);
     } catch (const exception& e) {
         cerr << ERROR << "Ошибка: " << RESET << e.what() << endl;
     }    

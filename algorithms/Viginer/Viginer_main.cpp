@@ -3,6 +3,8 @@
 #include <random>
 #include <filesystem>
 #include <chrono>
+#include <iomanip>
+#include <vector>
 #include "../include/Viginer/Viginer_functions.h"
 
 using namespace std;
@@ -25,7 +27,7 @@ string randomKeyGenerator(const size_t& keyLength, bool isShowingKeys) {
         cout << "Автоматически сгенерированный ключ: ";
         for (char c : key) 
         {
-            cout << hex << (int)(unsigned char)c;
+            cout << hex << setw(2) << setfill('0') << (int)(unsigned char)c;
         }
         cout << endl;
     }
@@ -33,36 +35,46 @@ string randomKeyGenerator(const size_t& keyLength, bool isShowingKeys) {
     return key;
 }
 
-string ViginerEncrypt(const string& plainText, const string& key) {
-    string cipherText;
-    size_t keyLength = key.length();
-
-    for (size_t i = 0; i < plainText.length(); i++) 
-    {
-        char textChar = plainText[i];
-        char keyChar = key[i % keyLength];
-
-        char cipherChar = static_cast<char>((static_cast<unsigned char>(textChar) + static_cast<unsigned char>(keyChar)) % 256);
-        cipherText += cipherChar;
+void ViginerEncrypt(istream& in, ostream& out, const string& key) {
+    const size_t keyLength = key.length();
+    size_t keyIndex = 0;
+    const size_t bufferSize = 4096; // 4KB блок
+    vector<char> buffer(bufferSize);
+    
+    while (in) {
+        in.read(buffer.data(), bufferSize);
+        const size_t bytesRead = in.gcount();
+        
+        for (size_t i = 0; i < bytesRead; ++i) {
+            unsigned char plainChar = static_cast<unsigned char>(buffer[i]);
+            unsigned char keyChar = static_cast<unsigned char>(key[keyIndex]);
+            buffer[i] = static_cast<char>((plainChar + keyChar) % 256);
+            keyIndex = (keyIndex + 1) % keyLength;
+        }
+        
+        out.write(buffer.data(), bytesRead);
     }
-
-    return cipherText;
 }
 
-string ViginerDecrypt(const string& cipherText, const string& key) {
-    string plainText;
-    size_t keyLength = key.length();
-
-    for (size_t i = 0; i < cipherText.length(); i++) 
-    {
-        char cipherChar = cipherText[i];
-        char keyChar = key[i % keyLength];
-
-        char decryptedChar = static_cast<char>((static_cast<unsigned char>(cipherChar) - static_cast<unsigned char>(keyChar) + 256) % 256);
-        plainText += decryptedChar;
+void ViginerDecrypt(istream& in, ostream& out, const string& key) {
+    const size_t keyLength = key.length();
+    size_t keyIndex = 0;
+    const size_t bufferSize = 4096; // 4KB блок
+    vector<char> buffer(bufferSize);
+    
+    while (in) {
+        in.read(buffer.data(), bufferSize);
+        const size_t bytesRead = in.gcount();
+        
+        for (size_t i = 0; i < bytesRead; ++i) {
+            unsigned char cipherChar = static_cast<unsigned char>(buffer[i]);
+            unsigned char keyChar = static_cast<unsigned char>(key[keyIndex]);
+            buffer[i] = static_cast<char>((cipherChar - keyChar + 256) % 256);
+            keyIndex = (keyIndex + 1) % keyLength;
+        }
+        
+        out.write(buffer.data(), bytesRead);
     }
-
-    return plainText;
 }
 
 string humanReadableSize(uintmax_t bytes) {
@@ -91,15 +103,8 @@ string humanReadableSize(uintmax_t bytes) {
 
 extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
     try {
-
-        ifstream inFile(fileName, ios::binary);
-        if (!inFile) 
-        {
-            throw runtime_error("Ошибка открытия входного файла");
-        }
-
-        string plainText((istreambuf_iterator<char>(inFile)), istreambuf_iterator<char>());
-        inFile.close();
+        fs::path inputPath(fileName);
+        string baseName = inputPath.filename().string();
 
         string key;
         cout << "Желаете, чтобы ключ был сгенерирован автоматически? (да/нет): ";
@@ -117,58 +122,82 @@ extern "C" void Viginer_run (const char* fileName, int isShowingKeys) {
             cin >> key;
         }
 
-        fs::path inputPath(fileName);
-        string baseName = inputPath.filename().string();
-
         cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
-        auto startEncrypt = high_resolution_clock::now();
-        string cipherText = ViginerEncrypt(plainText, key);
-        auto endEncrypt = high_resolution_clock::now();
-
-        ofstream encryptedOutFile("encrypted_" + baseName, ios::binary);
+        
+        ifstream inFile(fileName, ios::binary);
+        if (!inFile) 
+        {
+            throw runtime_error("Ошибка открытия входного файла");
+        }
+        
+        string encryptedFileName = "encrypted_" + baseName;
+        ofstream encryptedOutFile(encryptedFileName, ios::binary);
         if (!encryptedOutFile) 
         {
-            throw runtime_error ("Ошибка открытия выходного файла для шифрования.");
+            throw runtime_error("Ошибка открытия выходного файла для шифрования.");
         }
-        encryptedOutFile.write(cipherText.data(), cipherText.size());
+        
+        auto startEncrypt = high_resolution_clock::now();
+        ViginerEncrypt(inFile, encryptedOutFile, key);
+        auto endEncrypt = high_resolution_clock::now();
+        
+        inFile.close();
         encryptedOutFile.close();
+
         cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
 
-        auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
-        auto encryptMinutes = duration_cast<minutes>(encryptDuration);
-        auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
-        auto encryptMilliseconds = duration_cast<milliseconds>(encryptDuration - encryptMinutes - encryptSeconds);
-
-        cout << "Время шифрования: " << encryptMinutes.count() << " мин " << encryptSeconds.count() << " сек " << encryptMilliseconds.count() << " мс" << endl;
-
         cout << WARNING << "\nФайл дешифруется, подождите..." << RESET << endl;
-        auto startDecrypt = high_resolution_clock::now();
-        string decryptedText = ViginerDecrypt(cipherText, key);
-        auto endDecrypt = high_resolution_clock::now();
-
+        
+        ifstream encryptedInFile(encryptedFileName, ios::binary);
+        if (!encryptedInFile) 
+        {
+            throw runtime_error("Ошибка открытия зашифрованного файла");
+        }
+        
         ofstream decryptedOutFile(baseName, ios::binary);
         if (!decryptedOutFile) 
         {
-            throw runtime_error ("Ошибка открытия выходного файла для расшифрования.");
+            throw runtime_error("Ошибка открытия выходного файла для расшифрования.");
         }
-        decryptedOutFile.write(decryptedText.data(), decryptedText.size());
+        
+        auto startDecrypt = high_resolution_clock::now();
+        ViginerDecrypt(encryptedInFile, decryptedOutFile, key);
+        auto endDecrypt = high_resolution_clock::now();
+        
+        encryptedInFile.close();
         decryptedOutFile.close();
+        
         cout << SUCCESS << "Файл успешно дешифрован!" << RESET << endl;
+
+        // Расчет времени
+        auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
+        auto encryptMinutes = duration_cast<minutes>(encryptDuration);
+        auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
+        auto encryptMilliseconds = encryptDuration - encryptMinutes - encryptSeconds;
 
         auto decryptDuration = duration_cast<milliseconds>(endDecrypt - startDecrypt);
         auto decryptMinutes = duration_cast<minutes>(decryptDuration);
         auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
-        auto decryptMilliseconds = duration_cast<milliseconds>(decryptDuration - decryptMinutes - decryptSeconds);
+        auto decryptMilliseconds = decryptDuration - decryptMinutes - decryptSeconds;
 
-        cout << "Время дешифрования: " << decryptMinutes.count() << " мин " << decryptSeconds.count() << " сек " << decryptMilliseconds.count() << " мс" << endl;
+        // Вывод информации
+        cout << dec << "Время шифрования: " << encryptMinutes.count() << " мин "
+             << encryptSeconds.count() << " сек "
+             << encryptMilliseconds.count() << " мс" << endl;
 
-        uintmax_t originalSize = fs::file_size(inputPath);
-        uintmax_t encryptedSize = fs::file_size("encrypted_" + baseName);
+        cout << dec << "Время дешифрования: " << decryptMinutes.count() << " мин "
+             << decryptSeconds.count() << " сек "
+             << decryptMilliseconds.count() << " мс" << endl;
 
-        cout << IMPORTANT << "\nРазмер файла до шифрования: " << humanReadableSize(originalSize) << RESET << endl;
-        cout << IMPORTANT << "Размер зашифрованного файла: " << humanReadableSize(encryptedSize) << RESET << endl;
+        uintmax_t originalSize = fs::file_size(fileName);
+        uintmax_t encryptedSize = fs::file_size(encryptedFileName);
+
+        cout << IMPORTANT << "\nРазмер файла до шифрования: " 
+             << humanReadableSize(originalSize) << RESET << endl;
+        cout << IMPORTANT << "Размер зашифрованного файла: " 
+             << humanReadableSize(encryptedSize) << RESET << endl;
 
     } catch (const exception& e) {
-        cerr << ERROR<< "Ошибка: " << RESET << e.what() << endl;
+        cerr << ERROR << "Ошибка: " << RESET << e.what() << endl;
     }
 }

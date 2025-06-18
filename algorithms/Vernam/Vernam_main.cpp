@@ -4,6 +4,8 @@
 #include <random>
 #include <filesystem>
 #include <chrono>
+#include <iomanip>
+#include <vector>
 #include "../include/Vernam/Vernam_functions.h"
 
 using namespace std;
@@ -11,58 +13,59 @@ using namespace Colors;
 using namespace std::chrono;
 namespace fs = filesystem;
 
-string randomKeyGenerator(size_t length) {
+string randomKeyGenerator(size_t length, bool isShowingKeys) {
     string key;
     mt19937 mt(random_device{}());
     uniform_int_distribution<int> dist(0, 255);
 
-    for (size_t i = 0; i < length; i++)
+    for (size_t i = 0; i < length; i++) 
     {
         key += static_cast<char>(dist(mt));
+    }
+
+    if (isShowingKeys && length > 0) 
+    {
+        // Сохраняем оригинальные настройки потока
+        ios_base::fmtflags original_flags = cout.flags();
+        char original_fill = cout.fill();
+        
+        cout << "Первые 16 байт ключа: ";
+        for (size_t i = 0; i < min(static_cast<size_t>(16), length); i++) 
+        {
+            cout << hex << setw(2) << setfill('0') << (int)(unsigned char)key[i];
+        }
+        cout << dec << endl; // Важно: сбрасываем в десятичный формат
+        
+        // Восстанавливаем настройки потока
+        cout.flags(original_flags);
+        cout.fill(original_fill);
     }
 
     return key;
 }
 
-string vernamEncrypt (const string& plaintext, const string& key, ofstream& out, bool isShowingKeys) {
+void vernamEncryptStream(istream& in, ostream& out, const string& key) {
+    const size_t keyLength = key.length();
+    size_t keyIndex = 0;
+    const size_t bufferSize = 4096; // 4KB блок
+    vector<char> buffer(bufferSize);
     
-    if (isShowingKeys)
-    {
-        cout << "Случайно сгенерированный ключ: ";
-    
-        for (char c : key)
+    while (in) {
+        in.read(buffer.data(), bufferSize);
+        const size_t bytesRead = in.gcount();
+        
+        for (size_t i = 0; i < bytesRead; ++i) 
         {
-            cout << hex << (int)(unsigned char)c;
+            buffer[i] = buffer[i] ^ key[keyIndex];
+            keyIndex = (keyIndex + 1) % keyLength;
         }
-        cout << endl;
+        
+        out.write(buffer.data(), bytesRead);
     }
-
-    string ciphertext;
-    for (size_t i = 0; i < plaintext.length(); i++)
-    {
-        char encryptedChar = plaintext[i] ^ key[i];
-        ciphertext += encryptedChar;
-    }
-
-    for (char c : ciphertext)
-    {
-        out << hex << (int)(unsigned char)c;
-    }
-    out << endl;
-
-    return ciphertext;
 }
 
-void vernamDecrypt (const string& ciphertext, const string& key, ofstream& out) {
-    string plaintext;
-
-    for (size_t i = 0; i < ciphertext.length(); i++)
-    {
-        char decryptedChar = ciphertext[i] ^ key[i];
-        plaintext += decryptedChar;
-    }
-
-    out << plaintext;
+void vernamDecryptStream(istream& in, ostream& out, const string& key) {
+    vernamEncryptStream(in, out, key);
 }
 
 string humanReadableSize(uintmax_t bytes) {
@@ -70,14 +73,14 @@ string humanReadableSize(uintmax_t bytes) {
     int unit = 0;
     double size = static_cast<double>(bytes);
 
-    while (size >= 1024 && unit < 4)
+    while (size >= 1024 && unit < 4) 
     {
         size /= 1024;
         ++unit;
     }
 
     string result;
-    if (unit == 0 || size >= 100)
+    if (unit == 0 || size >= 100) 
     {
         result = to_string(static_cast<int>(size));
     } else {
@@ -91,76 +94,91 @@ string humanReadableSize(uintmax_t bytes) {
 
 extern "C" void Vernam_run(const char* fileName, int isShowingKeys) {
     try {
-        ifstream inFile(fileName, ios::binary);
-        if(!inFile)
+        fs::path inputPath(fileName);
+        string baseName = inputPath.filename().string();
+        string encryptedFileName = "encrypted_" + baseName;
+        string decryptedFileName = "decrypted_" + baseName;
+
+        uintmax_t fileSize = fs::file_size(fileName);
+        if (fileSize == 0) 
         {
-            cerr << ERROR << "Ошибка открытия входного файла: " << RESET << fileName << endl;
-        }
-
-        string plaintext;
-        inFile.seekg(0, ios::end);
-
-        size_t size = inFile.tellg();
-        inFile.seekg(0, ios::beg);
-
-        if (size > 0)
-        {
-            plaintext.assign(istreambuf_iterator<char>(inFile), istreambuf_iterator<char>());
-        } else {
             throw runtime_error("Входной файл пуст.");
         }
-        inFile.close();
 
-        const string key = randomKeyGenerator(plaintext.length());
+        const string key = randomKeyGenerator(fileSize, isShowingKeys);
 
-        filesystem::path inputPath(fileName);
-        string baseName = inputPath.filename().string();
-
-        ofstream encryptedOutFile("encrypted_" + baseName, ios::binary);
-        if (!encryptedOutFile) {
+        cout << WARNING << "\nФайл шифруется, подождите..." << RESET << endl;
+        
+        ifstream inFile(fileName, ios::binary);
+        if (!inFile) 
+        {
+            throw runtime_error("Ошибка открытия входного файла");
+        }
+        
+        ofstream encryptedOutFile(encryptedFileName, ios::binary);
+        if (!encryptedOutFile) 
+        {
             throw runtime_error("Ошибка открытия выходного файла для шифрования.");
         }
-        cout << "\nФайл шифруется, подождите...\n";
+        
         auto startEncrypt = high_resolution_clock::now();
-        string cipherText = vernamEncrypt(plaintext, key, encryptedOutFile, isShowingKeys);
+        vernamEncryptStream(inFile, encryptedOutFile, key);
         auto endEncrypt = high_resolution_clock::now();
-        cout << "\nФайл успешно зашифрован!\n";
+        
+        inFile.close();
+        encryptedOutFile.close();
+        cout << SUCCESS << "Файл успешно зашифрован!" << RESET << endl;
+
+        cout << WARNING << "\nФайл дешифруется, подождите..." << RESET << endl;
+        
+        ifstream encryptedInFile(encryptedFileName, ios::binary);
+        if (!encryptedInFile) 
+        {
+            throw runtime_error("Ошибка открытия зашифрованного файла");
+        }
+        
+        ofstream decryptedOutFile(decryptedFileName, ios::binary);
+        if (!decryptedOutFile) 
+        {
+            throw runtime_error("Ошибка открытия выходного файла для расшифрования.");
+        }
+        
+        auto startDecrypt = high_resolution_clock::now();
+        vernamDecryptStream(encryptedInFile, decryptedOutFile, key);
+        auto endDecrypt = high_resolution_clock::now();
+        
+        encryptedInFile.close();
+        decryptedOutFile.close();
+        cout << SUCCESS << "Файл успешно дешифрован!" << RESET << endl;
 
         auto encryptDuration = duration_cast<milliseconds>(endEncrypt - startEncrypt);
         auto encryptMinutes = duration_cast<minutes>(encryptDuration);
         auto encryptSeconds = duration_cast<seconds>(encryptDuration - encryptMinutes);
-        auto encryptMilliseconds = duration_cast<milliseconds>(encryptDuration - encryptMinutes - encryptSeconds);
-
-        cout << "Время шифрования: " << encryptMinutes.count() << " мин " << encryptSeconds.count() << " сек " << encryptMilliseconds.count() << " мс" << endl;
-
-        ofstream decryptedOutFile("decrypted_" + baseName, ios::binary);
-        if (!decryptedOutFile) {
-            throw runtime_error("Ошибка открытия выходного файла для расшифрования.");
-        }
-        cout << "\nФайл дешифруется, подождите...\n";
-        auto startDecrypt = high_resolution_clock::now();
-        vernamDecrypt(cipherText, key, decryptedOutFile);
-        auto endDecrypt = high_resolution_clock::now();
-        cout << "\nФайл успешно дешифрован!\n";
-        decryptedOutFile.close();
+        auto encryptMilliseconds = encryptDuration - encryptMinutes - encryptSeconds;
 
         auto decryptDuration = duration_cast<milliseconds>(endDecrypt - startDecrypt);
         auto decryptMinutes = duration_cast<minutes>(decryptDuration);
         auto decryptSeconds = duration_cast<seconds>(decryptDuration - decryptMinutes);
-        auto decryptMilliseconds = duration_cast<milliseconds>(decryptDuration - decryptMinutes - decryptSeconds);
+        auto decryptMilliseconds = decryptDuration - decryptMinutes - decryptSeconds;
 
-        cout << "Время дешифрования: " << decryptMinutes.count() << " мин " << decryptSeconds.count() << " сек " << decryptMilliseconds.count() << " мс" << endl;
+        // Вывод информации (явно указываем десятичный формат)
+        cout << dec << "Время шифрования: " << encryptMinutes.count() << " мин "
+             << encryptSeconds.count() << " сек "
+             << encryptMilliseconds.count() << " мс" << endl;
 
-        uintmax_t originalSize = fs::file_size(inputPath);
-        uintmax_t encryptedSize = fs::file_size("encrypted_" + baseName);
+        cout << dec << "Время дешифрования: " << decryptMinutes.count() << " мин "
+             << decryptSeconds.count() << " сек "
+             << decryptMilliseconds.count() << " мс" << endl;
 
-        cout << IMPORTANT << "\nРазмер файла до шифрования: " << humanReadableSize(originalSize) << RESET << endl;
-        cout << IMPORTANT << "Размер зашифрованного файла: " << humanReadableSize(encryptedSize) << RESET << endl;
+        uintmax_t originalSize = fileSize;
+        uintmax_t encryptedSize = fs::file_size(encryptedFileName);
 
+        cout << IMPORTANT << "\nРазмер файла до шифрования: " 
+             << humanReadableSize(originalSize) << RESET << endl;
+        cout << IMPORTANT << "Размер зашифрованного файла: " 
+             << humanReadableSize(encryptedSize) << RESET << endl;
+
+    } catch (const exception& e) {
+        cerr << ERROR << "Ошибка: " << RESET << e.what() << endl;
     }
-    catch (const exception& e)
-    {
-        cerr << "Ошибка: " << e.what() << endl;
-    }
-    
 }
