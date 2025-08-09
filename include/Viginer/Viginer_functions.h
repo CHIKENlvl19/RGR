@@ -23,7 +23,3 @@ void Viginer_run (const char* fileName, int isShowingKeys);
 #ifdef __cplusplus
 }
 #endif
-
-/*string randomKeyGenerator(const size_t& keyLength, bool isShowingKeys);
-string ViginerEncrypt(const string& plaintext, const string& key);
-string ViginerDecrypt(const string& cipherText, const string& key);*/
